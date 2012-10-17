@@ -1,7 +1,8 @@
 #include "SVM.h"
-#include "bmrm.h"
+#include "functions.h"
 
 #include <map>
+#include <vector>
 #include <iostream>
 
 using namespace cv;
@@ -31,8 +32,11 @@ bool LSVM::train(const CvMat* trainData, const CvMat* responses, const CvMat* va
 bool LSVM::train(const Mat& trainData, const Mat& responses, const Mat& _varIdx, 
 	const Mat& _sampleIdx, LSVMParams params)
 {
+	/*
 	clear();
 
+	CV_Assert(!trainData.empty());
+	CV_Assert(!responses.empty());
 	CV_Assert(	CV_MAT_TYPE(trainData.type())==CV_32FC1 && 
 				CV_MAT_TYPE(responses.type())==CV_32FC1 &&
 				CV_MAT_TYPE(_varIdx.type())==CV_32SC1 &&
@@ -40,7 +44,8 @@ bool LSVM::train(const Mat& trainData, const Mat& responses, const Mat& _varIdx,
 	CV_Assert(trainData.rows==responses.rows);
 	CV_Assert(_varIdx.empty() || _varIdx.rows==1);
 	CV_Assert(_sampleIdx.empty() || _sampleIdx.rows==1);
-	CV_Assert(params.C>0);
+	CV_Assert(params.C>0 || params.epsilon>0);
+
 
 	Mat varIdx;
 	GetNewIdx(_varIdx, trainData.cols, varIdx);
@@ -89,14 +94,38 @@ bool LSVM::train(const Mat& trainData, const Mat& responses, const Mat& _varIdx,
 		}
 	}
 
-	
-	cout << sampleIdx << endl << endl;
 
+	//============================================
+	//       Regularized Risk Minimization
+	//============================================
+
+	int t = 0;
+	Mat w(varCount, 1, CV_32FC1);
+	w = 0;
+	vector<Mat> A;
+	vector<float> B;
+	float gap = 0;
+	Regularizer regularizer;
+	EmpiricalRisk empRisk(denseSamples, denseResponses);
+	do
+	{
+		Mat a; float b;
+		//empRisk.GetSubgradient(w, a);
+		b = float( empRisk.Value(w, a)-w.dot(a) );
+		A.push_back(a);
+		B.push_back(b);
+		float Jmin = regularizer.MinJt(A, B, w); 
+		gap = 1/params.C*regularizer.Value(w)+empRisk.Value(w, a) - Jmin;
+	}
+	while(gap>params.epsilon);
+	
+	
 	//временно
 	normal = Mat(1, trainData.cols, CV_32FC1);
 	normal = -1;
-	
+	*/
 	return false;
+	
 }
 
 bool LSVM::train(CvMLData* trainData, LSVMParams params)
@@ -136,17 +165,21 @@ float LSVM::predict(const CvMat* sample) const
 
 float LSVM::calc_error(CvMLData* data, int type, std::vector<float>* resp) const
 {
+	CV_Assert(data);
 	Mat values = data->get_values();
 	Mat responses = data->get_responses();
 	Mat sampleIdx;
-	if(type==CV_TRAIN_ERROR)
+	switch(type)
 	{
+	case CV_TRAIN_ERROR:
 		sampleIdx = data->get_train_sample_idx();
-	}
-	else  // CV_TEST_ERROR
-	{
+		break;
+	case CV_TEST_ERROR:
 		sampleIdx = data->get_test_sample_idx();
+		break;
+	default: CV_Error(CV_StsBadArg, "parameter <<type>> is out of range");
 	}
+
 	int sampleCount = sampleIdx.cols;
 
 	float error = 0;

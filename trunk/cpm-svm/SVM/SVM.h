@@ -8,10 +8,12 @@ struct LSVMParams
 	LSVMParams()
 	{
 		C = 1;
+		epsilon = 0.01f;
 	}
-	LSVMParams(float _C) : C(_C) {}
+	LSVMParams(float _C, float _epsilon) : C(_C), epsilon(_epsilon) {}
 
 	float C;
+	float epsilon;
 };
 
 
