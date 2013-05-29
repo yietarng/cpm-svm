@@ -94,9 +94,9 @@ bool BSVM::train(const cv::Mat& trainData, const cv::Mat& responses, const cv::M
 		{
 			int col = varIdx.at<int>(j);
 			x[i][j] = trainData.at<float>(row, col);
-			//cout << x[i][j] << '\t';
+			cout << x[i][j] << '\t';
 		}
-		//cout << endl;
+		cout << y[i] << endl;
 	}
 
 	if(params.solver==BSVMParams::BMRM_SOLVER)
@@ -122,6 +122,8 @@ bool BSVM::train(const cv::Mat& trainData, const cv::Mat& responses, const cv::M
 
 bool BSVM::train(CvMLData* trainData, BSVMParams params)
 {
+	const CvMat* ptr = trainData->get_train_sample_idx();
+//	CvMat(
 	train(trainData->get_values(), trainData->get_responses(), trainData->get_var_idx(),
 		trainData->get_train_sample_idx(), params);
 	return true;

@@ -4,6 +4,10 @@
 #include <list>
 #include <float.h>
 
+//============================
+#include <iostream>
+//============================
+
 using namespace std;
 
 
@@ -11,6 +15,8 @@ float DotProduct(const float* x, const float* y, int n);
 float Max(float a, float b);
 void SetNull(float* x, int n);
 void Multiply(const float* x, float alpha, float* result, int n);
+
+void Print(const float* x, int n); 
 
 
 
@@ -31,6 +37,12 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) const
 	float* w = _betta;
 	SetNull(w, n);
 
+	//======================================
+	cout << "w[0] = ";
+	Print(w, n);
+	cout << endl;
+	//======================================
+
 	int t = 0;
 	while(t<maxIter)
 	{
@@ -44,8 +56,23 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) const
 		//Пересчет w...
 
 		float gap = J(w)-Jcp(w, a, b);
+
+		//===============================================
+		//вывод результатов
+		cout << "субградиент a[" << t << "] = ";
+		Print(a.back(), n);
+
+		cout << "b[" << t << "] = " << b.back() << endl;
+
+		cout << "w[" << t << "] = ";
+		Print(w, n);
+
+		cout << "eps[" << t << "] = " << gap << endl;
+		//===============================================
+
 		if(gap<=epsilon)
 		{
+			cout << "выход";
 			break;
 		}
 	}
@@ -152,5 +179,20 @@ void Multiply(const float* x, float alpha, float* result, int n)
 	{
 		result[i] = alpha*x[i];
 	}
+}
+
+
+void Print(const float* x, int n)
+{
+	cout << "[";
+	for(int i = 0;i<n;i++)
+	{
+		cout << x[i];
+		if(i!=n-1)
+		{
+			cout << ", ";
+		}
+	}
+	cout << "]" << endl;
 }
 
