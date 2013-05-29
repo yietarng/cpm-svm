@@ -1,0 +1,15 @@
+%YAML:1.0
+support_vector_machine:
+    svm_type:       C_SVC
+    kernel_type:    POLY
+    degree:         2
+    gamma:          1
+    coef0:          0
+    Cvalue:         1
+    nu:             1
+    p:              1
+    #class_weights:
+    term_crit:
+        epsilon:    0.001
+        max_iter:   1000
+        type:       BOTH

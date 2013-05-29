@@ -1,0 +1,11 @@
+%YAML:1.0
+decision_tree:
+    max_depth:            int
+    min_sample_count:     int
+    regression_accuracy:  float
+    use_surrogates:       bool
+    max_categories:       int
+    cv_folds:             int
+    use_1se_rule:         bool
+    truncate_pruned_tree: bool
+    #priors

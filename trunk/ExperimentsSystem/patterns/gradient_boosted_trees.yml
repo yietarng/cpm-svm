@@ -1,0 +1,9 @@
+%YAML:1.0
+gradient_boosted_trees:
+    loss_function_type: string_SQUARED_LOSS\ABSOLUTE_LOSS\ERROR\HUBER_LOSS\DEVIANCE_LOSS
+    weak_count:         int
+    shrinkage:          float
+    subsample_portion:  float
+    max_depth:          int
+    use_surrogates:     bool
+#loss_function_type не может принимать значение "ERROR" !

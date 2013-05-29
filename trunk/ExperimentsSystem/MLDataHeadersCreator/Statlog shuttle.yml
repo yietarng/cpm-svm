@@ -1,0 +1,41 @@
+%YAML:1.0
+ml_data_set_header:
+   attributes:
+      -
+         name: X1
+         type: ordered
+      -
+         name: X2
+         type: ordered
+      -
+         name: X3
+         type: ordered
+      -
+         name: X4
+         type: ordered
+      -
+         name: X5
+         type: ordered
+      -
+         name: X6
+         type: ordered
+      -
+         name: X7
+         type: ordered
+      -
+         name: X8
+         type: ordered
+      -
+         name: X9
+         type: ordered
+      -
+         name: X10
+         type: ordered
+   responses: X10
+   number_of_samples: 58000
+   test_samples_percentage: 25
+   missed_values: No
+   csv_file:
+      filename: "Statlog shuttle.data"
+      delimiter: space
+      miss_character: ""

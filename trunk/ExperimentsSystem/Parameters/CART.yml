@@ -1,0 +1,11 @@
+%YAML:1.0
+decision_tree:
+    max_depth: 1000000
+    min_sample_count: 10
+    regression_accuracy: 0.01
+    use_surrogates: true
+    max_categories: 10
+    cv_folds: 0
+    use_1se_rule: false
+    truncate_pruned_tree: true
+#     priors:

@@ -1,0 +1,13 @@
+%YAML:1.0
+random_trees:
+    max_depth:                      int
+    min_sample_count:               int
+    regression_accuracy:            float
+    use_surrogates:                 bool
+    max_categories:                 int
+    #priors
+    calc_var_importance:            bool
+    nactive_vars:                   int
+    max_num_of_trees_in_the_forest: int
+    forest_accuracy:                float
+    termcrit_type:                  string_CV_TERMCRIT_ITER\CV_TERMCRIT_EPS\BOTH

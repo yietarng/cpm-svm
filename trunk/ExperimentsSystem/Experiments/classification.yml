@@ -1,0 +1,31 @@
+%YAML:1.0
+ml_benchmark:
+    data_sets:
+         directory: "C:\\Users\\Сергей\\Documents\\Studies\\MachineLearning\\code\\ExperimentsSystem\\Data\\classification"
+         config_files:
+              #-EURUSD_history.yml
+              -EURUSD_Williams.yml
+              #-SPECT_Heart.yml
+              #-car_evaluation.yml
+              #-spambase.yml
+              #-kr-vs-kp.yml
+              #-yeast.yml
+              #-Bank Marketing.yml
+              #-Adult.yml
+              #-Statlog shuttle.yml
+              #-Gisette.yml
+              #-Covertype.yml
+    algorithms:
+         directory: "C:\\Users\\Сергей\\Documents\\Studies\\MachineLearning\\code\\ExperimentsSystem\\Parameters"
+         config_files:
+              #-MLP.yml
+              #-SVM_fit.yml
+              #-SVM.yml
+              #-CART_fit.yml
+              #-CART.yml
+              #-RF_fit.yml
+              -RF.yml
+              #-GBT_classification_fit.yml
+              #-GBT_classification.yml
+              #-ERT_fit.yml
+              #-ERT.yml

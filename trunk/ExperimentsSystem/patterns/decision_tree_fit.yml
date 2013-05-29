@@ -1,0 +1,50 @@
+%YAML:1.0
+decision_tree:
+
+    ALTERNATIVES1:
+        max_depth: int
+        max_depth_grid:
+            min_value: int
+            max_value: int
+            step: float
+            scale: string_LOGARITHMIC\LINEAR
+
+    ALTERNATIVES2:
+        min_sample_count: int
+        min_sample_count_grid:
+            min_value: int
+            max_value: int
+            step: float
+            scale: string_LOGARITHMIC\LINEAR
+
+    ALTERNATIVES3:
+        regression_accuracy: float
+        regression_accuracy_grid:
+            min_value: float
+            max_value: float
+            step: float
+            scale: string_LOGARITHMIC\LINEAR
+
+    use_surrogates:       bool
+
+    ALTERNATIVES4:
+        max_categories: int
+        max_categories_grid:
+            min_value: int
+            max_value: int
+            step: float
+            scale: string_LOGARITHMIC\LINEAR
+
+    ALTERNATIVES5:
+        cv_folds: int
+        cv_folds_grid:
+            min_value: int
+            max_value: int
+            step: float
+            scale: string_LOGARITHMIC\LINEAR
+
+    use_1se_rule:         bool
+
+    truncate_pruned_tree: bool
+
+cv_folds:                 int

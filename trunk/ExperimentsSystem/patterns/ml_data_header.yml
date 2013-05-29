@@ -1,0 +1,14 @@
+%YAML:1.0
+ml_data_set_header:
+   attributes:
+      -
+         name: string
+         type: string_categorical\ordered
+   responses: string
+   number_of_samples: int
+   test_samples_percentage: int
+   missed_values: string_No\Yes
+   csv_file:
+      filename: string
+      delimiter: string
+      miss_character: char

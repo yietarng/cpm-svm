@@ -1,0 +1,99 @@
+%YAML:1.0
+multi_layer_perceptron:
+    train_method:         string_BACKPROP\RPROP
+    activate_function:    string_IDENTITY\SIGMOID_SYM\GAUSSIAN
+    ALTERNATIVES1:
+        hidden_layers_count:      int
+        hidden_layers_count_grid:
+            min_value: int
+            max_value: int
+            step:      float
+            scale:     string_LOGARITHMIC\LINEAR
+    ALTERNATIVES2:
+        hidden_layer_size:      int
+        hidden_layer_size_grid:
+            min_value: int
+            max_value: int
+            step:      float
+            scale:     string_LOGARITHMIC\LINEAR
+    ALTERNATIVES3:
+        fparam1:      double
+        fparam1_grid:
+            min_value: double
+            max_value: double
+            step:      float
+            scale:     string_LOGARITHMIC\LINEAR
+    ALTERNATIVES4:
+        fparam2:      double
+        fparam2_grid:
+            min_value: double
+            max_value: double
+            step:      float
+            scale:     string_LOGARITHMIC\LINEAR
+    bp:
+        ALTERNATIVES1:
+            dw_scale:      double
+            dw_scale_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES2:
+            moment_scale:  double
+            moment_scale_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+    rp:
+        ALTERNATIVES1:
+            dw0:      double
+            dw0_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES2:
+            dw_plus:      double
+            dw_plus_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES3:
+            dw_minus:      double
+            dw_minus_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES4:
+            dw_min:      double
+            dw_min_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES5:
+            dw_max:      double
+            dw_max_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+    term_crit:
+        ALTERNATIVES1:
+            epsion:      double
+            epsilon_grid:
+                min_value: double
+                max_value: double
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        ALTERNATIVES2:
+            max_iter:      int
+            max_iter_grid:
+                min_value: int
+                max_value: int
+                step:      float
+                scale:     string_LOGARITHMIC\LINEAR
+        type:             string_CV_TERMCRIT_ITER\CV_TERMCRIT_EPS\BOTH

@@ -1,0 +1,13 @@
+%YAML:1.0
+ml_benchmark:
+    data_sets:
+         directory: string
+         config_files:
+           -
+              string
+    algorithms:
+         directory: string
+         config_files:
+           -
+              string
+   
