@@ -3,10 +3,8 @@ ml_benchmark:
     data_sets:
          directory: "C:\\Users\\Сергей\\Documents\\Studies\\MachineLearning\\code\\ExperimentsSystem\\Data\\classification"
          config_files:
-              #-EURUSD_history.yml
-              -EURUSD_Williams.yml
               #-SPECT_Heart.yml
-              #-car_evaluation.yml
+              -car_evaluation.yml
               #-spambase.yml
               #-kr-vs-kp.yml
               #-yeast.yml
