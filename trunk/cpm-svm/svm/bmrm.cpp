@@ -1,8 +1,9 @@
 #include "bmrm.h"
 
 #include <math.h>
-#include <list>
 #include <float.h>
+#include "libqp.h"
+#include <limits.h>
 
 //============================
 #include <iostream>
@@ -15,8 +16,13 @@ float DotProduct(const float* x, const float* y, int n);
 float Max(float a, float b);
 void SetNull(float* x, int n);
 void Multiply(const float* x, float alpha, float* result, int n);
+const double* GramCol(uint32_t j);
 
 void Print(const float* x, int n); 
+
+
+
+double** gram;
 
 
 
@@ -30,10 +36,10 @@ BMRMSolver::BMRMSolver(const float** samples, const float* responses,
 	lambda = _lambda;
 }
 
-void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) const
+void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) 
 {
-	list<float*> a;
-	list<float> b;
+	vector<float*> a;
+	vector<float> b;
 	float* w = _betta;
 	SetNull(w, n);
 
@@ -53,7 +59,62 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) const
 		a.push_back(subnt);
 		b.push_back( EmpRisk(w)-DotProduct(w, subnt, n) );
 
+		//==============================================
 		//Пересчет w...
+		gram = new double*[t];
+		for(int i = 0;i<t;i++)
+		{
+			gram[i] = new double[t];
+		}
+		for(int i = 0;i<t;i++)
+		{
+			for(int j = 0;j<t;j++)
+			{
+				gram[i][j] = DotProduct(a[i], a[j], n);
+			}
+		}
+
+		double* f = new double[t];
+		for(int i = 0;i<t;i++)
+		{
+			f[i] = b[i];
+		}
+		
+		double bArr[1] = {1};
+		uint8_t S[1] = {0};
+
+		uint32_t* I = new uint32_t[t];
+		for(int i = 0;i<t;i++)
+		{
+			I[i] = 1;
+		}
+
+		double* diag = new double[t];
+		for(int i = 0;i<t;i++)
+		{
+			diag[i] = gram[i][i];
+		}
+
+		double* alpha = new double[t];
+		for(int i = 0;i<t;i++)
+		{
+			alpha[i] = 0;
+		}
+
+		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, 0, 0.01, DBL_MIN, 0);     
+		
+
+		for(int i = 0;i<t;i++)
+		{
+			delete[] gram[i];
+		}
+		delete[] gram;
+		delete[] diag;
+		delete[] I;
+		delete[] f;
+		//==============================================
+
+
 
 		float gap = J(w)-Jcp(w, a, b);
 
@@ -68,37 +129,33 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) const
 		Print(w, n);
 
 		cout << "eps[" << t << "] = " << gap << endl;
+		cout << endl;
 		//===============================================
 
 		if(gap<=epsilon)
 		{
-			cout << "выход";
+			cout << "выход" << endl;
 			break;
 		}
 	}
 
-	while(!a.empty())
+	for(int i = 0;i<a.size();i++)
 	{
-		delete[] a.front();
-		a.pop_front();
+		delete[] a[i];
 	}
 }
 
 
-float BMRMSolver::Jcp(const float* w, const std::list<float*>& a, const std::list<float>& b) const
+float BMRMSolver::Jcp(const float* w, const std::vector<float*>& a, const std::vector<float>& b) const
 {
 	float max = FLT_MIN;
-	list<float*>::const_iterator aIter = a.begin();
-	list<float>::const_iterator bIter = b.begin();
-	while(aIter!=a.end())
+	for(int k = 0;k<a.size();k++)
 	{
-		float value = DotProduct(w, *aIter, n);
+		float value = b[k]+DotProduct(w, a[k], n);
 		if(value>max)
 		{
 			max = value;
 		}
-		aIter++;
-		bIter++;
 	}
 	return lambda*Regularizer(w)+max;
 }
@@ -140,6 +197,7 @@ void BMRMSolver::CalcEmpRiskSubnt(const float* w, float* subnt) const
 		}
 	}
 }
+
 
 //====================================================================================
 
@@ -194,5 +252,10 @@ void Print(const float* x, int n)
 		}
 	}
 	cout << "]" << endl;
+}
+
+const double* GramCol(uint32_t j)
+{
+	return gram[j];
 }
 

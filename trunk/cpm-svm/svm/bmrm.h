@@ -2,7 +2,8 @@
 #define BMRM_MAC
 
 
-#include <list>
+#include <vector>
+#include <stdint.h>
 
 //EmpRisk
 
@@ -12,12 +13,12 @@ public:
 
 	BMRMSolver(const float** samples, const float* responses, int dimention, int sampleCount, 
 		float _lambda);
-	void Solve(float epsilon, int maxIter, float* _betta) const;
+	void Solve(float epsilon, int maxIter, float* _betta);
 
 private:
 
 	float EmpRisk(const float* w) const;
-	float Jcp(const float* w, const std::list<float*>& a, const std::list<float>& b) const;
+	float Jcp(const float* w, const std::vector<float*>& a, const std::vector<float>& b) const;
 	float Regularizer(const float* w) const;
 	void CalcEmpRiskSubnt(const float* w, float* subnt) const;
 	float J(float* w) const;
