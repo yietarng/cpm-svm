@@ -16,6 +16,7 @@ float DotProduct(const float* x, const float* y, int n);
 float Max(float a, float b);
 void SetNull(float* x, int n);
 void Multiply(const float* x, float alpha, float* result, int n);
+
 const double* GramCol(uint32_t j);
 
 void Print(const float* x, int n); 
@@ -98,11 +99,19 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		double* alpha = new double[t];
 		for(int i = 0;i<t;i++)
 		{
-			alpha[i] = 0;
+			alpha[i] = 1./t;
 		}
 
-		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, 0, 0.01, DBL_MIN, 0);     
-		
+		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, 0.0000001, 0.01, DBL_MIN, 0);     
+		for(int i = 0;i<n;i++)
+		{
+			float sum = 0;
+			for(int j = 0;j<t;j++)
+			{
+				sum += a[j][i]*float(alpha[j]);
+			}
+			w[i] = (-1/lambda)*sum;
+		}
 
 		for(int i = 0;i<t;i++)
 		{
@@ -112,29 +121,30 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		delete[] diag;
 		delete[] I;
 		delete[] f;
+		delete[] alpha;
 		//==============================================
 
 
 
 		float gap = J(w)-Jcp(w, a, b);
 
-		//===============================================
-		//вывод результатов
-		cout << "субградиент a[" << t << "] = ";
-		Print(a.back(), n);
+		////===============================================
+		////вывод результатов
+		//cout << "субградиент a[" << t << "] = ";
+		//Print(a.back(), n);
 
-		cout << "b[" << t << "] = " << b.back() << endl;
+		//cout << "b[" << t << "] = " << b.back() << endl;
 
-		cout << "w[" << t << "] = ";
-		Print(w, n);
+		//cout << "w[" << t << "] = ";
+		//Print(w, n);
 
-		cout << "eps[" << t << "] = " << gap << endl;
-		cout << endl;
-		//===============================================
+		//cout << "eps[" << t << "] = " << gap << endl;
+		//cout << endl;
+		////===============================================
 
 		if(gap<=epsilon)
 		{
-			cout << "выход" << endl;
+			//cout << "выход" << endl;
 			break;
 		}
 	}

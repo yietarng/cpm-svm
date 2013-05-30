@@ -4,6 +4,7 @@
 #include <ml.h>
 #include "ParamGrid.h"
 #include <vector>
+#include "bsvm.h"
 
 
 
@@ -16,9 +17,10 @@ namespace mle
 		SUPPORT_VECTOR_MACHINE, 
 		RANDOM_TREES,
 		EXTREMELY_RANDOMIZED_TREES,
-		MULTI_LAYER_PERCEPTRON
+		MULTI_LAYER_PERCEPTRON,
+		B_SVM
 	};
-	const int algorithmCount = 6;
+	const int algorithmCount = 7;
 	const std::string algorithmName[algorithmCount] =
 	{
 		"decision_tree",
@@ -26,7 +28,8 @@ namespace mle
 		"support_vector_machine", 
 		"random_trees",
 		"extremely_randomized_trees",
-		"multi_layer_perceptron"
+		"multi_layer_perceptron",
+		"b_svm"
 	};
 
 	struct MLP_Params
@@ -52,6 +55,7 @@ namespace mle
 		operator CvRTParams() const;
 		operator CvSVMParams() const;
 		operator MLP_Params() const;
+		operator BSVMParams() const;
 
 		void InitVaryingByGrid();
 		bool VaryByGrid();
@@ -73,6 +77,7 @@ namespace mle
 		CvRTParams RTrees;
 		CvSVMParams SVM;
 		MLP_Params MLP;
+		BSVMParams bsvm;
 
 		bool CVflag;
 		int cvFolds;

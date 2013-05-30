@@ -130,6 +130,14 @@ void StatModelParams::Load(const std::string &filename)
 			AddGrid(&SVM.p, "p");
 		}
 		break;
+	case B_SVM:
+		{
+			bsvm.epsilon = top["epsilon"];
+			bsvm.solver = defList[0];
+			bsvm.maxIter = top["max_iter"];
+			bsvm.lambda = top["lambda"];
+			break;
+		}
 	case RANDOM_TREES:
 	case EXTREMELY_RANDOMIZED_TREES:
 		{
@@ -192,6 +200,12 @@ void StatModelParams::Load(const std::string &filename)
 	{
 		ES_Error("Ошибка в файле с параметрами: не указано ни одного параметра для подбора кросс-валидацией");
 	}
+}
+
+StatModelParams::operator BSVMParams() const
+{
+	ES_Assert(algorithm==B_SVM);
+	return this->bsvm;
 }
 
 StatModelParams::operator CvDTreeParams() const

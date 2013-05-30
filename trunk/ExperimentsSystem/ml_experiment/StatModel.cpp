@@ -1,5 +1,6 @@
 #include "StatModel.h"
 #include "ErrorHandling.h"
+#include "bsvm.h"
 
 
 #include <time.h>
@@ -69,6 +70,11 @@ void StatModel::Train(MLData *data, const StatModelParams& params)
 		trainData.cols = data->get_values()->cols-1;
 		dynamic_cast<CvSVM*>(model)->train(&trainData, data->get_responses(), 
 			data->get_var_idx(), data->get_train_sample_idx(), params); 
+		break;
+
+	case B_SVM :
+		model = new BSVM();
+		dynamic_cast<BSVM*>(model)->train(data, params);
 		break;
 
 	case RANDOM_TREES :
@@ -194,6 +200,12 @@ Measures* StatModel::CalcMeasures(MLData* data, int type, Time* predictingTime,
 			dynamic_cast<CvSVM*>(model)->predict(&samples, &results);
 			time->Finish();
 		}
+		break;
+
+	case B_SVM :
+		time->Start();
+		dynamic_cast<BSVM*>(model)->calc_error(data, type, predicted);
+		time->Finish();
 		break;
 
 	case RANDOM_TREES :

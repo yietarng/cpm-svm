@@ -1,17 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ml_experiment", "ml_experiment\ml_experiment.vcproj", "{CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ml_experiment", "ml_experiment\ml_experiment.vcxproj", "{CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MLDataHeadersCreator", "MLDataHeadersCreator\MLDataHeadersCreator.vcproj", "{E6201DA5-2064-4B9F-A056-C6D685E222FA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA} = {CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MLDataHeadersCreator", "MLDataHeadersCreator\MLDataHeadersCreator.vcxproj", "{E6201DA5-2064-4B9F-A056-C6D685E222FA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tester", "Tester\Tester.vcproj", "{D39E9D63-5ED2-4B1F-8CC2-42F1118B48B4}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA} = {CABEC03D-F4A1-4B3D-B4F7-CDF58955F4CA}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tester", "Tester\Tester.vcxproj", "{D39E9D63-5ED2-4B1F-8CC2-42F1118B48B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
