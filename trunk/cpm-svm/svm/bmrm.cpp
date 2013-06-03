@@ -4,6 +4,7 @@
 #include <float.h>
 #include "libqp.h"
 #include <limits.h>
+#include <Windows.h>
 
 //============================
 #include <iostream>
@@ -102,7 +103,14 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 			alpha[i] = 1./t;
 		}
 
-		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, 0.0000001, 0.01, DBL_MIN, 0);     
+		int start = GetTickCount();
+		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, epsilon*10, epsilon/10, DBL_MIN, 0); 
+		int finish = GetTickCount();
+		//===============================================
+		cout << "время решения задачи кв. прогр. " << float(finish-start)/1000 << "секунд" << endl;
+		cout << "сделано " << state.nIter << "итераций" << endl;
+		cout << "eps для задачи квадр. программирования " << state.QP-state.QD << endl;
+		//===============================================
 		for(int i = 0;i<n;i++)
 		{
 			float sum = 0;
@@ -128,23 +136,23 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 
 		float gap = J(w)-Jcp(w, a, b);
 
-		////===============================================
-		////вывод результатов
-		//cout << "субградиент a[" << t << "] = ";
-		//Print(a.back(), n);
+		//===============================================
+		//вывод результатов
+		cout << "субградиент a[" << t << "] = ";
+		Print(a.back(), n);
 
-		//cout << "b[" << t << "] = " << b.back() << endl;
+		cout << "b[" << t << "] = " << b.back() << endl;
 
-		//cout << "w[" << t << "] = ";
-		//Print(w, n);
+		cout << "w[" << t << "] = ";
+		Print(w, n);
 
-		//cout << "eps[" << t << "] = " << gap << endl;
-		//cout << endl;
-		////===============================================
+		cout << "eps[" << t << "] = " << gap << endl;
+		cout << endl << endl;
+		//===============================================
 
 		if(gap<=epsilon)
 		{
-			//cout << "выход" << endl;
+			cout << "выход" << endl;
 			break;
 		}
 	}

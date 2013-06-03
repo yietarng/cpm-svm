@@ -13,7 +13,7 @@ using namespace std;
 
 
 float Sign(float value);
-void GetLabels(const Mat& resp, const Mat& sampleIdx, map<float, int>& labels); 
+void GetLabels(const Mat& resp, const Mat& sampleIdx, vector<float>& labels); 
 
 
 
@@ -39,16 +39,14 @@ float BSVM::predict(const cv::Mat& sample) const
 	}
 	float sign = Sign(res);
 
-	map<float, int>::const_iterator iter = labels.begin();
 	float resp;
 	if(sign==1)
 	{
-		resp = iter->first;
+		resp = labels[0];
 	}
 	else // sign==-1
 	{
-		iter++;
-		resp = iter->first;
+		resp = labels[1];
 	}
 	return resp;
 }
@@ -197,17 +195,12 @@ float Sign(float value)
 }
 
 
-void GetLabels(const Mat& resp, const Mat& sampleIdx, map<float, int>& labels)
+void GetLabels(const Mat& resp, const Mat& sampleIdx, vector<float>& labels)
 {
 	labels.clear();
 	for(int i = 0;i<sampleIdx.cols;i++)
 	{
 		int idx = sampleIdx.at<int>(i);
-		float key = resp.at<float>(idx);
-		if(labels.find(key)==labels.end())
-		{
-			int value = labels.size();
-			labels[key] = value;
-		}
+		float label = resp.at<float>(idx);
 	}
 }

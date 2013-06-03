@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <ml.h>
-#include <map>
 
 struct BSVMParams
 {
@@ -41,7 +40,7 @@ private:
 	std::vector<float> betta;
 	std::vector<int> var_idx;
 	int sampleDim;
-	std::map<float,int> labels;
+	std::vector<float> labels;
 };
 
 
