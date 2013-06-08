@@ -1,9 +1,9 @@
 #ifdef _DEBUG
-#pragma comment(lib, "..\\Debug\\bsvm.lib")
+	#pragma comment(lib, "..\\Debug\\bsvm.lib")
 #endif
 
 #ifndef _DEBUG
-#pragma comment(lib, "..\\Release\\bsvm.lib")
+	#pragma comment(lib, "..\\Release\\bsvm.lib")
 #endif
 
 
