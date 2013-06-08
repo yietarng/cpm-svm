@@ -7,7 +7,7 @@
 #include <Windows.h>
 
 
-#define SHOW_CALCULATIONS
+//#define SHOW_CALCULATIONS
 
 
 //============================
