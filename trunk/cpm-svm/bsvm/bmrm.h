@@ -11,22 +11,22 @@ class BMRMSolver
 {
 public:
 
-	BMRMSolver(const float** samples, const float* responses, int dimention, int sampleCount, 
-		float _lambda);
-	void Solve(float epsilon, int maxIter, float* _betta);
+	BMRMSolver(const double** samples, const double* responses, int dimention, int sampleCount, 
+		double _lambda);
+	void Solve(double epsilon, int maxIter, double* _betta);
 
 private:
 
-	float EmpRisk(const float* w) const;
-	float Jcp(const float* w, const std::vector<float*>& a, const std::vector<float>& b) const;
-	float Regularizer(const float* w) const;
-	void CalcEmpRiskSubnt(const float* w, float* subnt) const;
-	float J(float* w) const;
+	double EmpRisk(const double* w) const;
+	double Jcp(const double* w, const std::vector<double*>& a, const std::vector<double>& b) const;
+	double Regularizer(const double* w) const;
+	void CalcEmpRiskSubnt(const double* w, double* subnt) const;
+	double J(double* w) const;
 
-	const float** x;
-	const float* y;
+	const double** x;
+	const double* y;
 	int m, n;
-	float lambda;
+	double lambda;
 };
 
 

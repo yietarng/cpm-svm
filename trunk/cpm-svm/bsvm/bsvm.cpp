@@ -12,12 +12,13 @@ using namespace cv;
 using namespace std;
 
 
+
 //#define SHOW_DATA
 
 
 float Sign(float value);
 void GetLabels(const Mat& resp, const Mat& sampleIdx, vector<float>& labels); 
-
+double Normalize(VarInfo info, double value);
 
 
 BSVM::BSVM()
@@ -34,13 +35,14 @@ BSVM::~BSVM()
 float BSVM::predict(const cv::Mat& sample) const
 {
 	assert(sampleDim!=0 && sample.cols==sampleDim && sample.rows==1 && sample.type()==CV_32FC1);
-	float res = 0;
+	double res = 0;
 	for(int i = 0;i<var_idx.size();i++)
 	{
 		int idx = var_idx[i];
-		res += betta[i]*sample.at<float>(idx);
+		double value = double( sample.at<float>(idx) );
+		res += betta[i]*Normalize(varInfo[i], value);
 	}
-	float sign = Sign(res);
+	float sign = Sign( float(res) );
 
 	float resp;
 	if(sign==-1)
@@ -99,6 +101,7 @@ void BSVM::clear()
 	betta.clear();
 	var_idx.clear();
 	sampleDim = 0;
+	varInfo.clear();
 }
 
 
@@ -122,7 +125,7 @@ bool BSVM::train(const cv::Mat& trainData, const cv::Mat& responses, const cv::M
 	assert(labels.size()==2);
 
 	int m = sampleIdx.cols;
-	float* y = new float[m];
+	double* y = new double[m];
 	for(int i = 0;i<m;i++)
 	{
 		int idx = sampleIdx.at<int>(i);
@@ -137,16 +140,16 @@ bool BSVM::train(const cv::Mat& trainData, const cv::Mat& responses, const cv::M
 		}
 	}
 
-	float** x = new float*[m];
+	double** x = new double*[m];
 	for(int i = 0;i<m;i++)
 	{
-		x[i] = new float[n];
+		x[i] = new double[n];
 		
 		int row = sampleIdx.at<int>(i);
 		for(int j = 0;j<n;j++)
 		{
 			int col = varIdx.at<int>(j);
-			x[i][j] = trainData.at<float>(row, col);
+			x[i][j] = double( trainData.at<float>(row, col) );
 
 			#ifdef SHOW_DATA
 			cout << x[i][j] << '\t';
@@ -157,9 +160,40 @@ bool BSVM::train(const cv::Mat& trainData, const cv::Mat& responses, const cv::M
 		#endif SHOW_DATA
 	}
 
+
+	varInfo.resize(n);
+	for(int j = 0;j<n;j++)
+	{
+		VarInfo& info = varInfo[j];
+		for(int i = 0;i<m;i++)
+		{
+			double value = x[i][j];
+
+			info.mean += value;
+			if(info.max<value)
+			{
+				info.max = value;
+			}
+			if(info.min>value)
+			{
+				info.min = value;
+			}
+		}
+		info.mean /= m;
+	}
+
+	for(int i = 0;i<m;i++)
+	{
+		for(int j = 0;j<n;j++)
+		{
+			double& value = x[i][j];
+			value = Normalize(varInfo[j], value);
+		}
+	}
+
 	if(params.solver==BSVMParams::BMRM_SOLVER)
 	{
-		BMRMSolver bmrm((const float**)x, y, n, m, params.lambda);
+		BMRMSolver bmrm((const double**)x, y, n, m, params.lambda);
 		bmrm.Solve(params.epsilon, params.maxIter, &betta[0]);
 	}
 	else
@@ -233,3 +267,11 @@ void GetLabels(const Mat& resp, const Mat& sampleIdx, vector<float>& labels)
 		}
 	}
 }
+
+double Normalize(VarInfo info, double value)
+{
+	return (value-info.min)/(info.max-info.min);
+}
+
+//================================================================
+VarInfo::VarInfo() : mean(0), max(-DBL_MAX), min(DBL_MAX) {}

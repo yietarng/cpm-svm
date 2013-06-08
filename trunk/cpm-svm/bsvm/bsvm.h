@@ -22,6 +22,15 @@ struct BSVMParams
 	int maxIter;
 };
 
+struct VarInfo
+{
+	VarInfo();
+
+	double mean;
+	double max;
+	double min;
+};
+
 class BSVM : public CvStatModel
 {
 public:
@@ -37,10 +46,11 @@ public:
 
 private:
 
-	std::vector<float> betta;
+	std::vector<double> betta;
 	std::vector<int> var_idx;
 	int sampleDim;
 	std::vector<float> labels;
+	std::vector<VarInfo> varInfo;
 };
 
 

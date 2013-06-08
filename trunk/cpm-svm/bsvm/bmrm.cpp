@@ -7,7 +7,7 @@
 #include <Windows.h>
 
 
-//#define SHOW_CALCULATIONS
+#define SHOW_CALCULATIONS
 
 
 //============================
@@ -19,15 +19,17 @@
 using namespace std;
 
 
-float DotProduct(const float* x, const float* y, int n);
-float Max(float a, float b);
-void SetNull(float* x, int n);
-void Multiply(const float* x, float alpha, float* result, int n);
+double DotProduct(const double* x, const double* y, int n);
+double Max(double a, double b);
+void SetNull(double* x, int n);
+void Multiply(const double* x, double alpha, double* result, int n);
 
 const double* GramCol(uint32_t j);
 
+
 #ifdef SHOW_CALCULATIONS
-void Print(const float* x, int n); 
+template<class T>
+void Print(const T* x, int n); 
 #endif SHOW_CALCULATIONS
 
 
@@ -36,8 +38,8 @@ double** gram;
 
 
 
-BMRMSolver::BMRMSolver(const float** samples, const float* responses, 
-					   int dimention, int sampleCount, float _lambda)
+BMRMSolver::BMRMSolver(const double** samples, const double* responses, 
+					   int dimention, int sampleCount, double _lambda)
 {
 	x = samples;
 	y = responses;
@@ -46,11 +48,11 @@ BMRMSolver::BMRMSolver(const float** samples, const float* responses,
 	lambda = _lambda;
 }
 
-void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta) 
+void BMRMSolver::Solve(double epsilon, int maxIter, double *_betta) 
 {
-	vector<float*> a;
-	vector<float> b;
-	float* w = _betta;
+	vector<double*> a;
+	vector<double> b;
+	double* w = _betta;
 	SetNull(w, n);
 
 	//======================================
@@ -64,9 +66,13 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 	int t = 0;
 	while(t<maxIter)
 	{
+		#ifdef SHOW_CALCULATIONS
+		int iterTime = -GetTickCount();
+		#endif SHOW_CALCULATIONS
+
 		t++;
 
-		float* subnt = new float[n];
+		double* subnt = new double[n];
 		CalcEmpRiskSubnt(w, subnt);
 		a.push_back(subnt);
 		b.push_back( EmpRisk(w)-DotProduct(w, subnt, n) );
@@ -89,7 +95,7 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		double* f = new double[t];
 		for(int i = 0;i<t;i++)
 		{
-			f[i] = b[i];
+			f[i] = -b[i];
 		}
 		
 		double bArr[1] = {1};
@@ -114,21 +120,23 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		}
 
 		int start = GetTickCount();
-		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, epsilon*10, epsilon/10, DBL_MIN, 0); 
+		libqp_state_T state = libqp_splx_solver(GramCol, diag, f, bArr, I, S, alpha, t, INT_MAX, epsilon/2, 0, -DBL_MAX, 0); 
 		int finish = GetTickCount();
 		//===============================================
 		#ifdef SHOW_CALCULATIONS
-		cout << "время решения задачи кв. прогр. " << float(finish-start)/1000 << "секунд" << endl;
-		cout << "сделано " << state.nIter << "итераций" << endl;
+		cout << "alpha[" << t << "] = ";
+		Print(alpha, t);
+		cout << "время решения задачи кв. прогр. " << double(finish-start)/1000 << "секунд" << endl;
+		cout << "сделано " << state.nIter << " итераций" << endl;
 		cout << "eps для задачи квадр. программирования " << state.QP-state.QD << endl;
 		#endif SHOW_CALCULATIONS
 		//===============================================
 		for(int i = 0;i<n;i++)
 		{
-			float sum = 0;
+			double sum = 0;
 			for(int j = 0;j<t;j++)
 			{
-				sum += a[j][i]*float(alpha[j]);
+				sum += a[j][i]*double(alpha[j]);
 			}
 			w[i] = (-1/lambda)*sum;
 		}
@@ -144,10 +152,9 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		delete[] alpha;
 		//==============================================
 
-
-		float aa = J(w);
-		float bb = Jcp(w, a, b);
-		float gap = J(w)-Jcp(w, a, b);
+		double aa = J(w);
+		double bb = Jcp(w, a, b);
+		double gap = J(w)-Jcp(w, a, b);
 
 		//===============================================
 		#ifdef SHOW_CALCULATIONS
@@ -162,6 +169,9 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 		Print(w, n);
 
 		cout << "eps[" << t << "] = " << gap << endl;
+
+		iterTime += GetTickCount();
+		cout << "время выполнения итерации: " << float(iterTime)/1000 << " секунд" << endl; 
 		cout << endl << endl;
 
 		#endif SHOW_CALCULATIONS
@@ -184,12 +194,12 @@ void BMRMSolver::Solve(float epsilon, int maxIter, float *_betta)
 }
 
 
-float BMRMSolver::Jcp(const float* w, const std::vector<float*>& a, const std::vector<float>& b) const
+double BMRMSolver::Jcp(const double* w, const std::vector<double*>& a, const std::vector<double>& b) const
 {
-	float max = -FLT_MAX;
+	double max = -FLT_MAX;
 	for(int k = 0;k<a.size();k++)
 	{
-		float value = b[k]+DotProduct(w, a[k], n);
+		double value = b[k]+DotProduct(w, a[k], n);
 		if(value>max)
 		{
 			max = value;
@@ -199,14 +209,14 @@ float BMRMSolver::Jcp(const float* w, const std::vector<float*>& a, const std::v
 }
 
 
-float BMRMSolver::Regularizer(const float* w) const
+double BMRMSolver::Regularizer(const double* w) const
 {
 	return DotProduct(w, w, n)/2;
 }
 
-float BMRMSolver::EmpRisk(const float* w) const
+double BMRMSolver::EmpRisk(const double* w) const
 {
-	float sum = 0;
+	double sum = 0;
 	for(int i = 0;i<m;i++)
 	{
 		sum += Max( 0, 1-y[i]*DotProduct(x[i], w, n) );
@@ -214,18 +224,18 @@ float BMRMSolver::EmpRisk(const float* w) const
 	return sum;
 }
 
-float BMRMSolver::J(float* w) const
+double BMRMSolver::J(double* w) const
 {
 	return lambda*Regularizer(w)+EmpRisk(w);
 }
 
-void BMRMSolver::CalcEmpRiskSubnt(const float* w, float* subnt) const
+void BMRMSolver::CalcEmpRiskSubnt(const double* w, double* subnt) const
 {
 	SetNull(subnt, n);
 	for(int i = 0;i<m;i++)
 	{
-		const float* sample = x[i];
-		float value = Max( 0, 1-y[i]*DotProduct(sample, w, n) );
+		const double* sample = x[i];
+		double value = Max( 0, 1-y[i]*DotProduct(sample, w, n) );
 		if(value!=0)
 		{
 			for(int j = 0;j<n;j++)
@@ -239,9 +249,9 @@ void BMRMSolver::CalcEmpRiskSubnt(const float* w, float* subnt) const
 
 //====================================================================================
 
-float DotProduct(const float* x, const float* y, int n)
+double DotProduct(const double* x, const double* y, int n)
 {
-	float res = 0;
+	double res = 0;
 	for(int i = 0;i<n;i++)
 	{
 		res += x[i]*y[i];
@@ -249,7 +259,7 @@ float DotProduct(const float* x, const float* y, int n)
 	return res;
 }
 
-float Max(float a, float b)
+double Max(double a, double b)
 {
 	if(a>b)
 	{
@@ -261,7 +271,7 @@ float Max(float a, float b)
 	}
 }
 
-void SetNull(float* x, int n)
+void SetNull(double* x, int n)
 {
 	for(int i = 0;i<n;i++)
 	{
@@ -269,7 +279,7 @@ void SetNull(float* x, int n)
 	}
 }
 
-void Multiply(const float* x, float alpha, float* result, int n)
+void Multiply(const double* x, double alpha, double* result, int n)
 {
 	for(int i = 0;i<n;i++)
 	{
@@ -280,7 +290,8 @@ void Multiply(const float* x, float alpha, float* result, int n)
 
 
 #ifdef SHOW_CALCULATIONS
-void Print(const float* x, int n)
+template<class T>
+void Print(const T* x, int n)
 {
 	cout << "[";
 	for(int i = 0;i<n;i++)
