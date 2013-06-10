@@ -270,7 +270,7 @@ void GetLabels(const Mat& resp, const Mat& sampleIdx, vector<float>& labels)
 
 double Normalize(VarInfo info, double value)
 {
-	return (value-info.min)/(info.max-info.min);
+	return (value-info.min)/(info.max-info.min)*2-1;
 }
 
 //================================================================

@@ -30,8 +30,8 @@ int main()
 
 	CvMLData data;
 	data.set_delimiter(',');
-	data.read_csv("..\\..\\Data\\Classification\\adult.data");
-	data.set_response_idx(14);
+	data.read_csv("..\\..\\Data\\Classification\\pima-indians-diabetes.data");
+	data.set_response_idx(8);
 	CvTrainTestSplit spl(0.75f, false);
 
 	/*data.set_delimiter(' ');

@@ -3,8 +3,8 @@ ml_benchmark:
     data_sets:
          directory: "..\\..\\Data\\classification"
          config_files:
-              -adult.yml
-              #-SPECT_Heart.yml
+              #-ionosphere.yml
+              -pima-indians-diabetes.yml
               #-car_evaluation.yml
               #-spambase.yml
               #-kr-vs-kp.yml
