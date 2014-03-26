@@ -1,8 +1,0 @@
-%YAML:1.0
-gradient_boosted_trees:
-    loss_function_type: SQUARED_LOSS
-    weak_count:         1000
-    shrinkage:          0.05
-    subsample_portion:  0.8
-    max_depth:          5
-    use_surrogates:     false

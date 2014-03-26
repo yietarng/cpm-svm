@@ -1,7 +1,0 @@
-%YAML:1.0
-b_svm:
-    solver:     string_BMRM_SOLVER\LSBMRM_SOLVER
-    lambda:     float
-    epsilon:    float
-    max_iter:   int
-cv_folds: int
