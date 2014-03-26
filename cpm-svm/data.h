@@ -21,10 +21,10 @@ public:
     bool IsLoaded() const;
     void Mix();
 
-//    const Mat& Samples() const;
-//    const Vec& Responses() const;
-//    std::vector<int> TrainSampleIdx() const;
-//    std::vector<int> TestSampleIdx() const;
+    const Mat& Samples() const;
+    const Vec& Responses() const;
+    std::vector<int> TrainSampleIdx() const;
+    std::vector<int> TestSampleIdx() const;
 
 
 private:

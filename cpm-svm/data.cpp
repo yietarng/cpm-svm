@@ -53,6 +53,7 @@ bool Data::ReadFile(std::string filename)
         return false;
     }
 
+
     int varCount = 0;
     for(int k = 0;k<vec.size();k++)
     {
@@ -114,6 +115,11 @@ bool Data::ReadFile(std::string filename)
     }
     trainCount = n;
 
+
+    cout << "Samples: " << samples << endl;
+    cout << "Responses: " << responses << endl;
+
+
     isLoaded = true;
     return true;
 }
@@ -129,35 +135,35 @@ void Data::SetTrainTestSplit(float trainPortion)
 }
 
 
-//const Mat& Data::Samples() const
-//{
-//    return samples;
-//}
+const Mat& Data::Samples() const
+{
+    return samples;
+}
 
-//const Vec& Data::Responses() const
-//{
-//    return responses;
-//}
+const Vec& Data::Responses() const
+{
+    return responses;
+}
 
-//std::vector<int> Data::TrainSampleIdx() const
-//{
-//    vector<int> trainSampleIdx;
-//    for(int i = 0;i<trainCount;i++)
-//    {
-//        trainSampleIdx.push_back(sampleIdx[i]);
-//    }
-//    return trainSampleIdx;
-//}
+std::vector<int> Data::TrainSampleIdx() const
+{
+    vector<int> trainSampleIdx;
+    for(int i = 0;i<trainCount;i++)
+    {
+        trainSampleIdx.push_back(sampleIdx[i]);
+    }
+    return trainSampleIdx;
+}
 
-//std::vector<int> Data::TestSampleIdx() const
-//{
-//    vector<int> testSampleIdx;
-//    for(int i = trainCount;i<sampleIdx.size();i++)
-//    {
-//        testSampleIdx.push_back(sampleIdx[i]);
-//    }
-//    return testSampleIdx;
-//}
+std::vector<int> Data::TestSampleIdx() const
+{
+    vector<int> testSampleIdx;
+    for(int i = trainCount;i<sampleIdx.size();i++)
+    {
+        testSampleIdx.push_back(sampleIdx[i]);
+    }
+    return testSampleIdx;
+}
 
 bool Data::IsLoaded() const
 {
@@ -196,6 +202,7 @@ bool GetStringVector(string filename, vector<string>& vec)
         vec.push_back(line);
     }
     vec.pop_back();
+    vec.pop_back(); // Так как файл заканчивается на /n
 
     f.close();
     return true;

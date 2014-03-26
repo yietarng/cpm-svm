@@ -7,7 +7,7 @@
 #include <boost/numeric/ublas/io.hpp>
 
 
-typedef float Real;
+typedef double Real;
 typedef boost::numeric::ublas::matrix<Real> Mat;
 typedef boost::numeric::ublas::vector<Real> Vec;
 
