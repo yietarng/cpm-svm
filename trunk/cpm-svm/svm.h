@@ -3,6 +3,8 @@
 
 
 #include "linear_algebra.h"
+#include "data.h"
+
 
 
 class SVM
@@ -10,7 +12,7 @@ class SVM
 public:
     class Exception {};
     SVM();
-    void Train(Mat samples, Vec responses);
+    void Train(const Data& data);
     Real Predict(Vec sample) const;
 
 
