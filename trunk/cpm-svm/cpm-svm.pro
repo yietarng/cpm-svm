@@ -1,5 +1,3 @@
-OTHER_FILES += \
-    cpm-svm.pro.user
 
 HEADERS += \
     svm.h \
@@ -10,3 +8,7 @@ SOURCES += \
     svm.cpp \
     main.cpp \
     data.cpp
+
+LIBS += -lCGAL -lgmp
+
+CONFIG -= qt

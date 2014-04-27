@@ -116,8 +116,8 @@ bool Data::ReadFile(std::string filename)
     trainCount = n;
 
 
-    cout << "Samples: " << samples << endl;
-    cout << "Responses: " << responses << endl;
+//    cout << "Samples: " << samples << endl;
+//    cout << "Responses: " << responses << endl;
 
 
     isLoaded = true;
