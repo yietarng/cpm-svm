@@ -7,12 +7,13 @@
 
 
 
+
 class SVM
 {
 public:
     class Exception {};
     SVM();
-    void Train(const Data& data);
+    void Train(const Data& data, const Real cValue, const Real epsilon, const int tMax);
     Real Predict(Vec sample) const;
 
 
