@@ -11,10 +11,12 @@
 class SVM
 {
 public:
+    enum {TRAIN, TEST};
     class Exception {};
     SVM();
     void Train(const Data& data, const Real cValue, const Real epsilon, const int tMax);
     Real Predict(Vec sample) const;
+    Real CalcError(const Data& data, int type) const;
 
 
 private:

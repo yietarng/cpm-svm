@@ -2,6 +2,25 @@
 
 #include <vector>
 #include <assert.h>
+#include <iostream>
+
+
+//=======================================
+// mosek declarations begin
+//=======================================
+
+#include "mosek.h"
+#include <stdio.h>
+static void MSKAPI printstr(void *handle,
+                            MSKCONST char str[])
+{
+  printf("%s",str);
+}
+
+//=======================================
+// mosek declarations end
+//=======================================
+
 
 using namespace std;
 //using namespace boost::numeric::ublas;
@@ -9,12 +28,14 @@ using namespace std;
 
 
 //=============================================
-// CGAL
-#include <iostream>
-#include <cassert>
-#include <CGAL/basic.h>
-#include <CGAL/QP_models.h>
-#include <CGAL/QP_functions.h>
+// CGAL declarations begin
+//=============================================
+
+//#include <cassert>
+//#include <CGAL/to_rational.h>
+//#include <CGAL/basic.h>
+//#include <CGAL/QP_models.h>
+//#include <CGAL/QP_functions.h>
 //// choose exact integral type
 //#ifdef CGAL_USE_GMP
 //#include <CGAL/Gmpz.h>
@@ -24,13 +45,15 @@ using namespace std;
 //typedef CGAL::MP_Float ET;
 //#endif
 
-typedef Real ET;
-// program and solution types
-typedef CGAL::Quadratic_program<Real> Program;
-typedef CGAL::Quadratic_program_solution<ET> Solution;
+////typedef Real ET;
+
+//// program and solution types
+//typedef CGAL::Quadratic_program<int> Program;
+//typedef CGAL::Quadratic_program_solution<ET> Solution;
+
 //=============================================
-
-
+// CGAL declarations end
+//=============================================
 
 
 
@@ -56,7 +79,6 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
     betta.clear();
 
 
-    Mat samples = data.Samples();
     Vec responses = data.Responses();
     for(int i = 0;i<responses.size();i++)
     {
@@ -65,11 +87,11 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
 //    vector<int> testSampleIdx = data.TestSampleIdx();
 //    vector<int> trainSampleIdx = data.TrainSampleIdx();
 
-    int n = samples.size1(); // число прецедентов в обучающей выборке
-    int d = samples.size2(); // размерность пространства признаков
+    int n = data.TrainSampleIdx().size(); // число прецедентов в обучающей выборке
+    int d = data.Samples().size2(); // размерность пространства признаков
 
     // проверка входных данных
-    if(n<=0 || d<=0 || n!=responses.size())
+    if(n<=0 || d<=0)
     {
         throw SVM::Exception();
     }
@@ -77,6 +99,7 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
 
     // Обучение
     //-----------------------------------
+    const Real lambda = 1/cValue;
     Vec w(d);
     std::fill(w.begin(), w.end(), 0);
     int t = 0;
@@ -84,7 +107,8 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
     vector<Vec> a;
     vector<Real> b;
 
-    cout << "Training..." << endl;
+
+
     do
     {
 //        if(t%10==0)
@@ -97,94 +121,251 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
         a.push_back( empRiskSubgradient(data, w) );
         b.push_back( empRisk(data, w) - inner_prod(w, a.back()) );
 
-
+#ifdef BMRM_INFO
         cout << endl << "Iteration " << t << endl;
-        cout << "empRisk(w) = " << empRisk(data, w) << endl;
+//        cout << "empRisk(w) = " << empRisk(data, w) << endl;
+        cout << "J(w) = " << Omega(w)+empRisk(data, w) << endl;
         cout << "w[" << t-1 << "] = " << w << endl;
         cout << "a[" << t << "] = " << a.back() << endl;
         cout << "b[" << t << "] = " << b.back() << endl;
+#endif
+
+//=======================================================
+// SGAL begin
+//=======================================================
+
+//        Program qp(CGAL::EQUAL, true, 0, false, 0);
+
+//        for(int i = 0;i<t;i++)
+//        {
+//            qp.set_a(i, 0, 1);
+//        }
+
+//        qp.set_b(0, 1);
+
+//        for(int i = 0;i<t;i++)
+//        {
+//            for(int j = 0;j<=i;j++)
+//            {
+//                qp.set_d( i, j, inner_prod(a[i], a[j])  );
+//            }
+//        }
+
+//        for(int i = 0;i<t;i++)
+//        {
+//            qp.set_c( i, -lambda*b[i] );
+//        }
 
 
+
+//        // solve the program, using ET as the exact type
+//        Solution s = CGAL::solve_quadratic_program(qp, ET());
+//        assert (s.solves_quadratic_program(qp));
+
+////        for (Solution::Index_iterator it = s.basic_variable_indices_begin();
+////                it != s.basic_variable_indices_end(); ++it)
+////        {
+////            std::cout << *it << " ";
+////        }
+////        cout << endl;
+
+//        Vec alpha(t);
+//        Solution::Variable_numerator_iterator it = s.variable_numerators_begin();
+//        int k = 0;
+//        for(;it!=s.variable_numerators_end();it++)
+//        {
+//            alpha[k] = (*it).to_double()/s.variables_common_denominator().to_double();
+//            k++;
+//        }
+
+
+//        Vec temp(d);
+//        std::fill(temp.begin(), temp.end(), 0);
+//        for(int i = 0;i<t;i++)
+//        {
+//            temp = temp + alpha[i]*a[i];
+//        }
+//        temp = -temp/lambda;
+//        w = temp;
+//        cout << "w[" << t << "] = " << w << endl;
+
+//==================================================
+// CGAL end
+//==================================================
+
+        //==========================================
         // argmin begin
-        Program qp(CGAL::EQUAL, true, 0, false, 0);
+        //==========================================
+        Vec alpha(t);
 
-        for(int i = 0;i<t;i++)
+
+        //==========================================
+        // mosek begin
+        //==========================================
+        MSKenv_t      env = NULL;
+        MSKtask_t     task = NULL;
+        MSKrescodee   resultCode;
+
+        const int constraintNumber = 1;
+        int varNumber = t;
+
+        resultCode = MSK_makeenv(&env,NULL);
+        assert(resultCode==MSK_RES_OK);
+
+        resultCode = MSK_maketask(env, constraintNumber,varNumber,&task);
+        assert(resultCode==MSK_RES_OK);
+
+        resultCode = MSK_linkfunctotaskstream(task,MSK_STREAM_LOG,NULL,NULL);
+        assert(resultCode==MSK_RES_OK);
+
+
+        // Добавляем данные
+        resultCode = MSK_appendcons(task, constraintNumber);
+        assert(resultCode==MSK_RES_OK);
+
+        resultCode = MSK_appendvars(task, varNumber);
+        assert(resultCode==MSK_RES_OK);
+
+        // Вектор c
+        for(int j = 0;j<varNumber;j++)
         {
-            qp.set_a(i, 0, 1);
+            resultCode = MSK_putcj(task,j,-b[j]);
+            assert(resultCode==MSK_RES_OK);
         }
 
-        qp.set_b(0, 1);
+        // Ограничения на переменные: alpha[i]>=0
+        for(int j = 0;j<varNumber;j++)
+        {
+            resultCode = MSK_putvarbound(task,
+                                j,
+                                MSK_BK_LO,
+                                0,
+                                +MSK_INFINITY);
+            assert(resultCode==MSK_RES_OK);
+        }
 
+
+        // Матрица A = [1 1 1 ... 1 1]
+        for(int j = 0;j<t;j++)
+        {
+            resultCode = MSK_putaij(task, 0, j, 1.0);
+            assert(resultCode==MSK_RES_OK);
+        }
+
+        resultCode = MSK_putconbound(task,
+                            0,
+                            MSK_BK_FX,
+                            1.0,
+                            1.0);
+        assert(resultCode==MSK_RES_OK);
+
+
+        // матрица Q = 1/lambda*transp(A)*A
         for(int i = 0;i<t;i++)
         {
             for(int j = 0;j<=i;j++)
             {
-                qp.set_d(i, j, inner_prod(a[i], a[j]));
+                resultCode = MSK_putqobjij( task, i, j, 1.0/lambda*inner_prod(a[i], a[j]) );
+                assert(resultCode==MSK_RES_OK);
             }
         }
 
-        for(int i = 0;i<t;i++)
+
+        // Решение задачи
+        MSKrescodee trmcode;
+
+        /* Run optimizer */
+        resultCode = MSK_optimizetrm(task,&trmcode);
+
+        /* Print a summary containing information
+           about the solution for debugging purposes*/
+        MSK_solutionsummary (task,MSK_STREAM_MSG);
+
+
+
+        MSKsolstae solsta;
+        double        xx[varNumber];
+
+        MSK_getsolsta (task,MSK_SOL_ITR,&solsta);
+
+        switch(solsta)
         {
-            qp.set_c(i, -cValue*b[i]);
+        case MSK_SOL_STA_OPTIMAL:
+        case MSK_SOL_STA_NEAR_OPTIMAL:
+            MSK_getxx(task,
+                   MSK_SOL_ITR,    /* Request the interior solution. */
+                   xx);
+#ifdef BMRM_INFO
+            printf("Optimal primal solution\n");
+#endif
+            for(int j=0; j<varNumber; ++j)
+            {
+#ifdef BMRM_INFO
+                printf("x[%d]: %e\n",j,xx[j]);
+#endif
+
+                alpha[j] = xx[j];
+            }
+
+
+            break;
+        case MSK_SOL_STA_DUAL_INFEAS_CER:
+        case MSK_SOL_STA_PRIM_INFEAS_CER:
+        case MSK_SOL_STA_NEAR_DUAL_INFEAS_CER:
+        case MSK_SOL_STA_NEAR_PRIM_INFEAS_CER:
+          printf("Primal or dual infeasibility certificate found.\n");
+          break;
+
+        case MSK_SOL_STA_UNKNOWN:
+          printf("The status of the solution could not be determined.\n");
+          break;
+        default:
+          printf("Other solution status.");
+          break;
         }
 
+        assert(solsta==MSK_SOL_STA_OPTIMAL);
 
-        // solve the program, using ET as the exact type
-        Solution s = CGAL::solve_quadratic_program(qp, ET());
-        assert (s.solves_quadratic_program(qp));
 
-//        for (Solution::Index_iterator it = s.basic_variable_indices_begin();
-//                it != s.basic_variable_indices_end(); ++it)
-//        {
-//            std::cout << *it << " ";
-//        }
-//        cout << endl;
+        // delete
+        MSK_deletetask(&task);
+        MSK_deleteenv(&env);
 
-        Vec alpha(t);
-        Solution::Variable_numerator_iterator it = s.variable_numerators_begin();
-        int k = 0;
-        for(;it!=s.variable_numerators_end();it++)
-        {
-            alpha[k] = *it/s.variables_common_denominator();
-            k++;
-        }
+        //==========================================
+        // mosek end
+        //==========================================
 
+
+        // Получение w из alpha
         Vec temp(d);
         std::fill(temp.begin(), temp.end(), 0);
         for(int i = 0;i<t;i++)
         {
             temp = temp + alpha[i]*a[i];
         }
-        temp = -temp/cValue;
+        temp = -temp/lambda;
         w = temp;
+
+#ifdef BMRM_INFO
         cout << "w[" << t << "] = " << w << endl;
-
-
-
-
-        //Solution::Variable_value_iterator iter;
-        //s.variable_values_begin();
-        //int i = 1;
-//        for(iter = s.variable_values_begin();iter!=s.variable_values_end();iter++)
-//        {
-////            cout << "alpha[" << i << "] = " << *iter << endl;
-//            i++;
-//        }
-
-
-        // output solution
-        //std::cout << endl << s;
-
+#endif
+        //==========================================
         // argmin end
+        //==========================================
 
 
         currentEps = empRisk(data, w) - empRiskCP(a, b, w);
+
+#ifdef BMRM_INFO
         cout << "Current epsilon = " << currentEps << endl;
+#endif
+
     }
     while(currentEps>epsilon && t<tMax);
 
     cout << endl;
     cout << "Training completed." << endl;
+    cout << "J(w) = " << Omega(w)+empRisk(data, w) << endl;
     cout << "Achieved epsilon: " << currentEps << " (required - " << epsilon << ")" << endl;
     cout << "Number of iterations: " << t << " (max - " << tMax << ")" << endl;
 
@@ -222,7 +403,62 @@ Real SVM::Predict(Vec sample) const
         throw SVM::Exception();
     }
 
-    return inner_prod(betta, sample);
+    if(inner_prod(betta, sample)<0)
+    {
+        return -1;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+
+Real SVM::CalcError(const Data& data, int type) const
+{
+    Mat samples = data.Samples();
+
+    const vector<int>& trainSampleIdx = data.TrainSampleIdx();
+    const vector<int>& testSampleIdx = data.TestSampleIdx();
+    const vector<int>* sampleIdxPtr;
+    if(type==TRAIN)
+    {
+        sampleIdxPtr = &trainSampleIdx;
+    }
+    else // type==TEST
+    {
+        sampleIdxPtr = &testSampleIdx;
+    }
+    const vector<int>& sampleIdx = *sampleIdxPtr;
+
+
+    assert( samples.size2() == betta.size() );
+    assert( sampleIdx.size() != 0 );
+
+
+    int errorCount = 0;
+    for(int i = 0;i<sampleIdx.size();i++)
+    {
+        int row = sampleIdx[i];
+        assert(data.Responses()[row]==-1.0 || data.Responses()[row]==1.0);
+
+        Real pred = Product(row, samples, betta);
+        if(pred<0)
+        {
+            pred = -1;
+        }
+        else
+        {
+            pred = 1;
+        }
+
+        if(pred*data.Responses()[row]<0)
+        {
+            errorCount++;
+        }
+
+    }
+    return Real(errorCount)/sampleIdx.size();
 }
 
 
