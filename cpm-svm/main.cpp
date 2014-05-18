@@ -8,6 +8,19 @@ using namespace std;
 
 
 
+#define BMRM_INFO
+
+
+////==============================
+//#include <CGAL/basic.h>
+//#include <CGAL/MP_Float.h>
+//#include <CGAL/Gmpz.h>
+//#include <CGAL/to_rational.h>
+//typedef CGAL::Gmpz ET;
+//typedef CGAL::Quotient<int> Rational;
+////==============================
+
+
 int main(int argc, char* argv[])
 {
     if(argc!=5)
@@ -31,8 +44,19 @@ int main(int argc, char* argv[])
     Real epsilon = Real(atof(argv[3]));
     int maxIter = atoi(argv[4]);
 
-    //data.SetTrainTestSplit(0.8);
-//    data.Mix();
+    data.SetTrainTestSplit(0.6);
+    cout << "Train sample count: " << data.TrainSampleIdx().size() << endl;
+    cout << "Test sample count: " << data.TestSampleIdx().size() << endl;
+    cout << "Number of variables: " << data.Samples().size2() << endl;
+//    cout << "Train sample indexes: ";
+//    for(int i = 0;i<data.TrainSampleIdx().size();i++)
+//    {
+//        cout << data.TrainSampleIdx()[i] << ' ';
+//    }
+//    cout << endl;
+
+    data.Mix();
+    cout << "Data mixed" << endl;
 
     cout << "Data file: " << argv[1] << endl;
     cout << "Cvalue = " << cValue << endl;
@@ -40,7 +64,16 @@ int main(int argc, char* argv[])
     cout << "Max number of iterations = " << maxIter << endl;
     cout << "Starting svm..." << endl;
     SVM svm;
-    svm.Train(data, 1, 0.01, 100);
+    svm.Train(data, cValue, epsilon, maxIter);
+    cout << "Train error: " << svm.CalcError(data, SVM::TRAIN) << endl;
+    cout << "Test error: " << svm.CalcError(data, SVM::TEST) << endl;
+
+//    CGAL::MP_Float fl(334.125);
+//    ET et(fl.);
+//    cout << fl << endl;
+//    cout << et << endl;
+    //cout << CGAL::to_rational<Rational>(334.125) << endl;
+
 
     return 0;
 }
