@@ -19,3 +19,8 @@ CONFIG -= qt
 INCLUDEPATH += /home/sergei/DevTools/mosek/7/tools/platform/linux32x86/h
 LIBS += -lpthread
 LIBS += -L/home/sergei/DevTools/mosek/7/tools/platform/linux32x86/bin -lmosek -liomp5
+
+
+debug {
+    DEFINES += BMRM_INFO
+}

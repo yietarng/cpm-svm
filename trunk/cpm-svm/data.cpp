@@ -202,7 +202,12 @@ bool GetStringVector(string filename, vector<string>& vec)
         vec.push_back(line);
     }
     vec.pop_back();
-    vec.pop_back(); // Так как файл заканчивается на /n
+
+    // Удаление пустых строчек в конце
+    while(vec.back()=="")
+    {
+        vec.pop_back();
+    }
 
     f.close();
     return true;
