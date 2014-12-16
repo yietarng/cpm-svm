@@ -39,6 +39,7 @@ void Data::Clear()
     sampleIdx.clear();
 
     trainCount = -1;
+    varNumber = -1;
 }
 
 
@@ -78,10 +79,11 @@ bool Data::ReadFile(std::string filename)
     }
 
 
-    int dim = varCount;
+    varNumber = varCount;
     int n = vec.size();
     responses = Vec(n);
-    samples = ZeroMat(n, dim);
+//    samples = ZeroMat(n, dim);
+    samples.resize(n);
 
     for(int i = 0;i<n;i++)
     {
@@ -104,7 +106,8 @@ bool Data::ReadFile(std::string filename)
 
             Real value;
             ss2 >> value;
-            samples(i, idx-1) = value;
+//            samples(i, idx-1) = value;
+            samples[i].push_back(Pair(value, idx));
         }
     }
 
@@ -131,11 +134,11 @@ void Data::SetTrainTestSplit(float trainPortion)
     {
         throw Exception();
     }
-    trainCount = floor(trainPortion*samples.size1());
+    trainCount = floor(trainPortion*samples.size());
 }
 
 
-const Mat& Data::Samples() const
+const SparseMat& Data::Samples() const
 {
     return samples;
 }
@@ -183,6 +186,12 @@ void Data::Mix()
 }
 
 
+int Data::VarNumber() const
+{
+    return varNumber;
+}
+
+
 
 //---------------------------------------------------------------
 
@@ -211,4 +220,24 @@ bool GetStringVector(string filename, vector<string>& vec)
 
     f.close();
     return true;
+}
+
+
+//---------------------------------------------------------------
+
+std::ostream& operator << (std::ostream& stream, const Data& data)
+{
+    const SparseMat& samples = data.Samples();
+    for(int i = 0;i<samples.size();i++)
+    {
+        cout << data.Responses()[i];
+        std::list<Pair>::const_iterator iter = samples[i].begin();
+        while(iter!=samples[i].end())
+        {
+            cout << ' ' << iter->idx << ':' << iter->value;
+            iter++;
+        }
+        cout << endl;
+    }
+    return stream;
 }

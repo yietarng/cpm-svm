@@ -6,6 +6,7 @@
 #include "data.h"
 
 
+#define BMRM_INFO
 
 
 class SVM
