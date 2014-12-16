@@ -4,12 +4,24 @@
 #include <iostream>
 
 
+//
+#include "solve_qp.h"
+
+
 using namespace std;
 
 
+int Main(int argc, char* argv[]);
 
 
 int main(int argc, char* argv[])
+{
+    return Main(argc, argv);
+}
+
+
+
+int Main(int argc, char* argv[])
 {
     if(argc!=7)
     {
@@ -33,14 +45,12 @@ int main(int argc, char* argv[])
         cout << "Error while loading data" << endl;
         return 1;
     }
-    cout << "Number of variables: " << data.Samples().size2() << endl;
+
 
 
     float trainPortion = atof(trainPortionStr);
     data.SetTrainTestSplit(trainPortion);
-    cout << trainPortion*100 << "% of data is used for training" << endl;
-    cout << "Train sample count: " << data.TrainSampleIdx().size() << endl;
-    cout << "Test sample count: " << data.TestSampleIdx().size() << endl;
+
 
 
     int seed = atoi(seedStr);
@@ -69,11 +79,23 @@ int main(int argc, char* argv[])
 
     cout << "Svm training..." << endl;
     SVM svm;
-    svm.Train(data, cValue, epsilon, maxIter);
-    cout << "Svm training completed." << endl;
 
-    cout << "Train error: " << svm.CalcError(data, SVM::TRAIN) << endl;
-    cout << "Test error: " << svm.CalcError(data, SVM::TEST) << endl;
+    long long time_svm = -gettimeus();
+    svm.Train(data, cValue, epsilon, maxIter);
+    time_svm += gettimeus();
+
+    cout << endl << "Svm training completed." << endl;
+    cout << "svm training time: " << double(time_svm)/1000000 << " seconds" << endl;
+
+    cout << "Number of variables: " << data.VarNumber() << endl;
+    cout << "Number of samples: " <<
+            data.TestSampleIdx().size() + data.TrainSampleIdx().size() << endl;
+    cout << trainPortion*100 << "% of data is used for training" << endl;
+    cout << "Train sample count: " << data.TrainSampleIdx().size() << endl;
+    cout << "Test sample count: " << data.TestSampleIdx().size() << endl;
+
+    cout << "Train accuracy: " << (1.0-svm.CalcError(data, SVM::TRAIN))*100 << "%" << endl;
+    cout << "Test  accuracy: " << (1.0-svm.CalcError(data, SVM::TEST))*100 << "%" << endl;
 
     return 0;
 }

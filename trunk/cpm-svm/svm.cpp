@@ -3,33 +3,17 @@
 #include <vector>
 #include <assert.h>
 #include <iostream>
+#include <stdio.h>
+
+#include "solve_qp.h"
+
+
+
+
+
 
 
 using namespace std;
-
-
-
-
-//=======================================
-// mosek declarations begin
-//=======================================
-
-#include "mosek.h"
-#include <stdio.h>
-static void MSKAPI printstr(void *handle,
-                            MSKCONST char str[])
-{
-  printf("%s",str);
-}
-
-//=======================================
-// mosek declarations end
-//=======================================
-
-
-
-//using namespace boost::numeric::ublas;
-
 
 
 Real empRisk(const Data& data, const Vec& w);
@@ -38,8 +22,8 @@ Vec empRiskSubgradient(const Data& data, const Vec& w);
 Real Omega(const Vec& w);
 
 
-Real Product(int row, const Mat& mat, const Vec& vec);
-
+//Real Product(int row, const Mat& mat, const Vec& vec);
+Real SparseProduct(int rowIdx, const SparseMat& mat, const Vec& vec);
 
 //--------------------------------------------------------------------------------
 
@@ -48,10 +32,16 @@ SVM::SVM()
 }
 
 
-void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const int tMax)
+void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, const int tMax)
 {
     // Очистка модели
     betta.clear();
+
+
+    if(!data.IsLoaded())
+    {
+        throw SVM::Exception();
+    }
 
 
     Vec responses = data.Responses();
@@ -61,18 +51,12 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
     }
 
     int n = data.TrainSampleIdx().size(); // число прецедентов в обучающей выборке
-    int d = data.Samples().size2(); // размерность пространства признаков
+    int d = data.VarNumber(); // размерность пространства признаков
 
-    // проверка входных данных
-    if(n<=0 || d<=0)
-    {
-        throw SVM::Exception();
-    }
 
 
     // Обучение
     //-----------------------------------
-    const Real lambda = 1/cValue;
     Vec w(d);
     std::fill(w.begin(), w.end(), 0);
     int t = 0;
@@ -85,16 +69,27 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
     do
     {
         t++;
+
+        long long time_a = -gettimeus();
         a.push_back( empRiskSubgradient(data, w) );
+        time_a += gettimeus();
+
+
+        long long time_b = -gettimeus();
         b.push_back( empRisk(data, w) - inner_prod(w, a.back()) );
+        time_b += gettimeus();
 
 #ifdef BMRM_INFO
         cout << endl << "Iteration " << t << endl;
 //        cout << "empRisk(w) = " << empRisk(data, w) << endl;
-        cout << "J(w) = " << Omega(w)+empRisk(data, w) << endl;
-        cout << "w[" << t-1 << "] = " << w << endl;
-        cout << "a[" << t << "] = " << a.back() << endl;
-        cout << "b[" << t << "] = " << b.back() << endl;
+
+
+        cout << "Subgradient calculating time: " << double(time_a)/1000000 << " seconds" << endl;
+        cout << "Coef calculating time: " << double(time_b)/1000000 << " seconds" << endl;
+
+//        cout << "w[" << t-1 << "] = " << w << endl;
+//        cout << "a[" << t << "] = " << a.back() << endl;
+//        cout << "b[" << t << "] = " << b.back() << endl;
 #endif
 
 
@@ -104,142 +99,11 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
         //==========================================
         Vec alpha(t);
 
-
-        //==========================================
-        // mosek begin
-        //==========================================
-        MSKenv_t      env = NULL;
-        MSKtask_t     task = NULL;
-        MSKrescodee   resultCode;
-
-        const int constraintNumber = 1;
-        int varNumber = t;
-
-        resultCode = MSK_makeenv(&env,NULL);
-        assert(resultCode==MSK_RES_OK);
-
-        resultCode = MSK_maketask(env, constraintNumber,varNumber,&task);
-        assert(resultCode==MSK_RES_OK);
-
-        resultCode = MSK_linkfunctotaskstream(task,MSK_STREAM_LOG,NULL,NULL);
-        assert(resultCode==MSK_RES_OK);
+        long long time_qp = -gettimeus();
+        SolveQP(a, b, lambda, 0.005 /*epsilon_tol*0.5*/, alpha);
+        time_qp += gettimeus();
 
 
-        // Добавляем данные
-        resultCode = MSK_appendcons(task, constraintNumber);
-        assert(resultCode==MSK_RES_OK);
-
-        resultCode = MSK_appendvars(task, varNumber);
-        assert(resultCode==MSK_RES_OK);
-
-        // Вектор c
-        for(int j = 0;j<varNumber;j++)
-        {
-            resultCode = MSK_putcj(task,j,-b[j]);
-            assert(resultCode==MSK_RES_OK);
-        }
-
-        // Ограничения на переменные: alpha[i]>=0
-        for(int j = 0;j<varNumber;j++)
-        {
-            resultCode = MSK_putvarbound(task,
-                                j,
-                                MSK_BK_LO,
-                                0,
-                                +MSK_INFINITY);
-            assert(resultCode==MSK_RES_OK);
-        }
-
-
-        // Матрица A = [1 1 1 ... 1 1]
-        for(int j = 0;j<t;j++)
-        {
-            resultCode = MSK_putaij(task, 0, j, 1.0);
-            assert(resultCode==MSK_RES_OK);
-        }
-
-        resultCode = MSK_putconbound(task,
-                            0,
-                            MSK_BK_FX,
-                            1.0,
-                            1.0);
-        assert(resultCode==MSK_RES_OK);
-
-
-        // матрица Q = 1/lambda*transp(A)*A
-        for(int i = 0;i<t;i++)
-        {
-            for(int j = 0;j<=i;j++)
-            {
-                resultCode = MSK_putqobjij( task, i, j, 1.0/lambda*inner_prod(a[i], a[j]) );
-                assert(resultCode==MSK_RES_OK);
-            }
-        }
-
-
-        // Решение задачи
-        MSKrescodee trmcode;
-
-        /* Run optimizer */
-        resultCode = MSK_optimizetrm(task,&trmcode);
-
-        /* Print a summary containing information
-           about the solution for debugging purposes*/
-        MSK_solutionsummary (task,MSK_STREAM_MSG);
-
-
-
-        MSKsolstae solsta;
-        double        xx[varNumber];
-
-        MSK_getsolsta (task,MSK_SOL_ITR,&solsta);
-
-        switch(solsta)
-        {
-        case MSK_SOL_STA_OPTIMAL:
-        case MSK_SOL_STA_NEAR_OPTIMAL:
-            MSK_getxx(task,
-                   MSK_SOL_ITR,    /* Request the interior solution. */
-                   xx);
-#ifdef BMRM_INFO
-            printf("Optimal primal solution\n");
-#endif
-            for(int j=0; j<varNumber; ++j)
-            {
-#ifdef BMRM_INFO
-                printf("x[%d]: %e\n",j,xx[j]);
-#endif
-
-                alpha[j] = xx[j];
-            }
-
-
-            break;
-        case MSK_SOL_STA_DUAL_INFEAS_CER:
-        case MSK_SOL_STA_PRIM_INFEAS_CER:
-        case MSK_SOL_STA_NEAR_DUAL_INFEAS_CER:
-        case MSK_SOL_STA_NEAR_PRIM_INFEAS_CER:
-          printf("Primal or dual infeasibility certificate found.\n");
-          break;
-
-        case MSK_SOL_STA_UNKNOWN:
-          printf("The status of the solution could not be determined.\n");
-          break;
-        default:
-          printf("Other solution status.");
-          break;
-        }
-
-        assert(solsta==MSK_SOL_STA_OPTIMAL);
-
-
-        // delete
-        MSK_deletetask(&task);
-        MSK_deleteenv(&env);
-
-        //==========================================
-        // mosek end
-        //==========================================
 
 
         // Получение w из alpha
@@ -249,12 +113,12 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
         {
             temp = temp + alpha[i]*a[i];
         }
-        temp = -temp/lambda;
-        w = temp;
+        w = -temp/lambda;
 
-#ifdef BMRM_INFO
-        cout << "w[" << t << "] = " << w << endl;
-#endif
+//#ifdef BMRM_INFO
+        cout << "J(w) = " << lambda*Omega(w)+empRisk(data, w) << endl;
+//        cout << "w[" << t << "] = " << w << endl;
+//#endif
         //==========================================
         // argmin end
         //==========================================
@@ -263,14 +127,16 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
         currentEps = empRisk(data, w) - empRiskCP(a, b, w);
 
 #ifdef BMRM_INFO
+        cout << "QP solving time: " << double(time_qp)/1000000 << " seconds" << endl;
         cout << "Current epsilon = " << currentEps << endl;
 #endif
 
     }
-    while(currentEps>epsilon && t<tMax);
+    while(currentEps>epsilon_tol/**(lambda*Omega(w)+empRisk(data, w))*/ && t<tMax);
 
-    cout << "BMRM => J(w) = " << Omega(w)+empRisk(data, w) << endl;
-    printf("BMRM => Achieved epsilon: %e (required - %e)\n", currentEps, epsilon);
+    cout << "BMRM => J(w) = " << lambda*Omega(w)+empRisk(data, w) << endl;
+    printf("BMRM => Achieved epsilon: %e (required tolerance epsilon- %e)\n",
+           currentEps, epsilon_tol);
     cout << "BMRM => Number of iterations: " << t << " (max - " << tMax << ")" << endl;
 
 
@@ -284,6 +150,10 @@ void SVM::Train(const Data& data, const Real cValue, const Real epsilon, const i
 
 
 }
+
+
+
+
 
 
 Real SVM::Predict(Vec sample) const
@@ -307,8 +177,6 @@ Real SVM::Predict(Vec sample) const
 
 Real SVM::CalcError(const Data& data, int type) const
 {
-    Mat samples = data.Samples();
-
     const vector<int>& trainSampleIdx = data.TrainSampleIdx();
     const vector<int>& testSampleIdx = data.TestSampleIdx();
     const vector<int>* sampleIdxPtr;
@@ -323,7 +191,7 @@ Real SVM::CalcError(const Data& data, int type) const
     const vector<int>& sampleIdx = *sampleIdxPtr;
 
 
-    assert( samples.size2() == betta.size() );
+    assert( data.VarNumber() == betta.size() );
     assert( sampleIdx.size() != 0 );
 
 
@@ -333,7 +201,7 @@ Real SVM::CalcError(const Data& data, int type) const
         int row = sampleIdx[i];
         assert(data.Responses()[row]==-1.0 || data.Responses()[row]==1.0);
 
-        Real pred = Product(row, samples, betta);
+        Real pred = SparseProduct(row, data.Samples(), betta);
         if(pred<0)
         {
             pred = -1;
@@ -362,7 +230,7 @@ Real Omega(const Vec& w)
 
 Real empRisk(const Data& data, const Vec& w)
 {
-    Mat samples = data.Samples();
+//    Mat samples = data.Samples();
     Vec responses = data.Responses();
     vector<int> trainSampleIdx = data.TrainSampleIdx();
 
@@ -370,32 +238,56 @@ Real empRisk(const Data& data, const Vec& w)
     for(int i = 0;i<trainSampleIdx.size();i++)
     {
         int idx = trainSampleIdx[i];
-        sum += max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
+//        sum += max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
+        sum += max(  Real(0), 1-responses[idx]*SparseProduct(idx, data.Samples(), w)  );
     }
+
+    //=================================
     sum /= trainSampleIdx.size();
+    //=================================
+
     return sum;
 }
 
 
 
-Real Product(int row, const Mat& mat, const Vec& vec)
+//Real Product(int row, const Mat& mat, const Vec& vec)
+//{
+//    assert(mat.size2()==vec.size());
+//    assert(vec.size()!=0);
+
+//    Real sum = 0;
+//    for(int i = 0;i<vec.size();i++)
+//    {
+//        sum += mat(row, i)*vec[i];
+//    }
+//    return sum;
+//}
+
+
+Real SparseProduct(int rowIdx, const SparseMat& mat, const Vec& vec)
 {
-    assert(mat.size2()==vec.size());
-    assert(vec.size()!=0);
+    Real result = 0;
 
-    Real sum = 0;
-    for(int i = 0;i<vec.size();i++)
+    const list<Pair>& row =  mat[rowIdx];
+    list<Pair>::const_iterator iter = row.begin();
+    while(iter!=row.end())
     {
-        sum += mat(row, i)*vec[i];
+        result += iter->value*vec[iter->idx-1];
+        iter++;
     }
-    return sum;
+
+    return result;
 }
+
+
+
 
 
 
 Vec empRiskSubgradient(const Data& data, const Vec& w)
 {
-    Mat samples = data.Samples();
+//    Mat samples = data.Samples();
     Vec responses = data.Responses();
     vector<int> trainSampleIdx = data.TrainSampleIdx();
 
@@ -409,13 +301,26 @@ Vec empRiskSubgradient(const Data& data, const Vec& w)
     for(int i = 0;i<trainSampleIdx.size();i++)
     {
         int idx = trainSampleIdx[i];
-        Real maxVal = max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
+//        Real maxVal = max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
+        Real maxVal = max(  Real(0), 1-responses[idx]*SparseProduct(idx, data.Samples(), w)  );
         if(maxVal > 0)
         {
-            subgr = subgr + (-responses[idx])*boost::numeric::ublas::matrix_row<Mat>(samples, idx);
+//            subgr = subgr + (-responses[idx])*boost::numeric::ublas::matrix_row<Mat>(samples, idx);
+//            subgr = subgr + (-responses[idx])*boost::numeric::ublas::matrix_row<Mat>(data.Samples(), idx);
+            const list<Pair>& row = data.Samples()[idx];
+            list<Pair>::const_iterator iter = row.begin();
+            while(iter!=row.end())
+            {
+                subgr[iter->idx-1] += -responses[idx]*iter->value;
+                iter++;
+            }
         }
     }
+
+    //=================================
     subgr /= trainSampleIdx.size();
+    //=================================
+
     return subgr;
 }
 

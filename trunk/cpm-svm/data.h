@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #include "linear_algebra.h"
+
 
 
 
@@ -21,10 +23,11 @@ public:
     bool IsLoaded() const;
     void Mix();
 
-    const Mat& Samples() const;
+    const SparseMat& Samples() const;
     const Vec& Responses() const;
     std::vector<int> TrainSampleIdx() const;
     std::vector<int> TestSampleIdx() const;
+    int VarNumber() const;
 
 
 private:
@@ -33,8 +36,12 @@ private:
     bool isLoaded;
     std::vector<int> sampleIdx;
     int trainCount;
-    Mat samples;
+    SparseMat samples;
     Vec responses;
+    int varNumber;
 };
+
+
+std::ostream& operator << (std::ostream& stream, const Data& data);
 
 #endif // DATA_H

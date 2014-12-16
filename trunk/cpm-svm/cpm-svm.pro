@@ -2,12 +2,14 @@
 HEADERS += \
     svm.h \
     linear_algebra.h \
-    data.h
+    data.h \
+    solve_qp.h
 
 SOURCES += \
     svm.cpp \
     main.cpp \
-    data.cpp
+    data.cpp \
+    solve_qp.cpp
 
 # cgal
 # LIBS += -lCGAL -lgmp
@@ -21,6 +23,6 @@ LIBS += -lpthread
 LIBS += -L/home/sergei/DevTools/mosek/7/tools/platform/linux32x86/bin -lmosek -liomp5
 
 
-debug {
-    DEFINES += BMRM_INFO
-}
+#debug {
+#    DEFINES += BMRM_INFO
+#}
