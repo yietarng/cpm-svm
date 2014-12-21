@@ -32,10 +32,12 @@ SVM::SVM()
 }
 
 
-void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, const int tMax)
+void SVM::Train(const Data& data, const Real lambda, const Real epsilon_abs,
+                const Real epsilon_tol, const int tMax)
 {
     // Очистка модели
     betta.clear();
+
 
 
     if(!data.IsLoaded())
@@ -45,12 +47,11 @@ void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, con
 
 
     Vec responses = data.Responses();
-    for(int i = 0;i<responses.size();i++)
+    for(unsigned i = 0;i<responses.size();i++)
     {
         assert(responses[i]==-1 || responses[i]==1);
     }
 
-    int n = data.TrainSampleIdx().size(); // число прецедентов в обучающей выборке
     int d = data.VarNumber(); // размерность пространства признаков
 
 
@@ -100,7 +101,7 @@ void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, con
         Vec alpha(t);
 
         long long time_qp = -gettimeus();
-        SolveQP(a, b, lambda, 0.005 /*epsilon_tol*0.5*/, alpha);
+        SolveQP(a, b, lambda, epsilon_tol*0.5, alpha);
         time_qp += gettimeus();
 
 
@@ -117,7 +118,8 @@ void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, con
 
 //#ifdef BMRM_INFO
         cout << "J(w) = " << lambda*Omega(w)+empRisk(data, w) << endl;
-//        cout << "w[" << t << "] = " << w << endl;
+//        cout << "EmpRisk(w) = " << empRisk(data, w) << endl;
+//        cout << "EmpRiskCP(w) = " << empRiskCP(a, b, w) << endl;
 //#endif
         //==========================================
         // argmin end
@@ -128,18 +130,25 @@ void SVM::Train(const Data& data, const Real lambda, const Real epsilon_tol, con
 
 #ifdef BMRM_INFO
         cout << "QP solving time: " << double(time_qp)/1000000 << " seconds" << endl;
+
         cout << "Current epsilon = " << currentEps << endl;
 #endif
 
     }
-    while(currentEps>epsilon_tol/**(lambda*Omega(w)+empRisk(data, w))*/ && t<tMax);
+    while(
+          currentEps>epsilon_abs
+          && currentEps>epsilon_tol*(lambda*Omega(w)+empRisk(data, w))
+          && t<tMax
+         );
 
+    cout << endl << endl;
     cout << "BMRM => J(w) = " << lambda*Omega(w)+empRisk(data, w) << endl;
-    printf("BMRM => Achieved epsilon: %e (required tolerance epsilon- %e)\n",
-           currentEps, epsilon_tol);
+    printf("BMRM => Achieved epsilon: %e \n", currentEps);
+    printf("BMRM => Required abs epsilon: %e \n", epsilon_abs);
+    printf("BMRM => Required tol epsilon: %e \n", epsilon_tol);
     cout << "BMRM => Number of iterations: " << t << " (max - " << tMax << ")" << endl;
 
-
+    cout << "w = " << w << endl;
 
 
     betta.resize(d);
@@ -196,7 +205,7 @@ Real SVM::CalcError(const Data& data, int type) const
 
 
     int errorCount = 0;
-    for(int i = 0;i<sampleIdx.size();i++)
+    for(unsigned i = 0;i<sampleIdx.size();i++)
     {
         int row = sampleIdx[i];
         assert(data.Responses()[row]==-1.0 || data.Responses()[row]==1.0);
@@ -235,7 +244,7 @@ Real empRisk(const Data& data, const Vec& w)
     vector<int> trainSampleIdx = data.TrainSampleIdx();
 
     Real sum = 0;
-    for(int i = 0;i<trainSampleIdx.size();i++)
+    for(unsigned i = 0;i<trainSampleIdx.size();i++)
     {
         int idx = trainSampleIdx[i];
 //        sum += max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
@@ -293,12 +302,12 @@ Vec empRiskSubgradient(const Data& data, const Vec& w)
 
     Vec subgr;
     subgr.resize(w.size());
-    for(int i = 0;i<subgr.size();i++)
+    for(unsigned i = 0;i<subgr.size();i++)
     {
         subgr[i] = 0;
     }
 
-    for(int i = 0;i<trainSampleIdx.size();i++)
+    for(unsigned i = 0;i<trainSampleIdx.size();i++)
     {
         int idx = trainSampleIdx[i];
 //        Real maxVal = max(  Real(0), 1-responses[idx]*Product(idx, samples, w)  );
@@ -328,7 +337,7 @@ Vec empRiskSubgradient(const Data& data, const Vec& w)
 Real empRiskCP(const vector<Vec>& a, const vector<Real>& b, const Vec& w)
 {
     Real val = inner_prod(w, a[0]) + b[0];
-    for(int i = 1;i<a.size();i++)
+    for(unsigned i = 1;i<a.size();i++)
     {
         val = std::max(val, inner_prod(w, a[i]) + b[i]);
     }

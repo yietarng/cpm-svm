@@ -23,17 +23,19 @@ int main(int argc, char* argv[])
 
 int Main(int argc, char* argv[])
 {
-    if(argc!=7)
+    if(argc!=8)
     {
-        cout << "Usage: lsvm <data_filename> <train_portion> <mix_seed> <C_value> <epsilon> <max_iter>" << endl;
+        cout << "Usage: lsvm <data_filename> <train_portion> <mix_seed> <lambda>"
+                " <epsilon_abs> <epsilon_tol> <max_iter>" << endl;
         return 1;
     }
     const char* dataPathStr = argv[1];
     const char* trainPortionStr = argv[2];
     const char* seedStr = argv[3];
-    const char* cValueStr = argv[4];
-    const char* epsilonStr = argv[5];
-    const char* maxIterStr = argv[6];
+    const char* lambdaStr = argv[4];
+    const char* epsilonAbsStr = argv[5];
+    const char* epsilonTolStr = argv[6];
+    const char* maxIterStr = argv[7];
 
 
 
@@ -67,13 +69,15 @@ int Main(int argc, char* argv[])
 
 
 
-    Real cValue = Real(atof(cValueStr));
-    Real epsilon = Real(atof(epsilonStr));
+    Real lambda = Real(atof(lambdaStr));
+    Real epsilon_abs = Real(atof(epsilonAbsStr));
+    Real epsilon_tol = Real(atof(epsilonTolStr));
     int maxIter = atoi(maxIterStr);
 
     cout << endl;
-    cout << "Cvalue = " << cValue << endl;
-    cout << "Epsilon = " << epsilon << endl;
+    cout << "Lambda = " << lambda << endl;
+    cout << "Abs epsilon = " << epsilon_abs << endl;
+    cout << "Tol epsilon = " << epsilon_tol << endl;
     cout << "Max number of iterations = " << maxIter << endl;
 
 
@@ -81,7 +85,7 @@ int Main(int argc, char* argv[])
     SVM svm;
 
     long long time_svm = -gettimeus();
-    svm.Train(data, cValue, epsilon, maxIter);
+    svm.Train(data, lambda, epsilon_abs, epsilon_tol, maxIter);
     time_svm += gettimeus();
 
     cout << endl << "Svm training completed." << endl;
@@ -95,7 +99,11 @@ int Main(int argc, char* argv[])
     cout << "Test sample count: " << data.TestSampleIdx().size() << endl;
 
     cout << "Train accuracy: " << (1.0-svm.CalcError(data, SVM::TRAIN))*100 << "%" << endl;
-    cout << "Test  accuracy: " << (1.0-svm.CalcError(data, SVM::TEST))*100 << "%" << endl;
+
+    if(data.TestSampleIdx().size()!=0)
+    {
+        cout << "Test  accuracy: " << (1.0-svm.CalcError(data, SVM::TEST))*100 << "%" << endl;
+    }
 
     return 0;
 }

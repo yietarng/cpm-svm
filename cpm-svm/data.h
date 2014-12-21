@@ -27,7 +27,7 @@ public:
     const Vec& Responses() const;
     std::vector<int> TrainSampleIdx() const;
     std::vector<int> TestSampleIdx() const;
-    int VarNumber() const;
+    unsigned VarNumber() const;
 
 
 private:
@@ -38,7 +38,7 @@ private:
     int trainCount;
     SparseMat samples;
     Vec responses;
-    int varNumber;
+    unsigned varNumber;
 };
 
 
