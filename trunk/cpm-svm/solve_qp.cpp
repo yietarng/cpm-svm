@@ -4,7 +4,7 @@
 Real Delta(const Vec& alpha, const Vec& b_minus_H_alpha, const Mat& H, int u, int v);
 
 
-void SolveQP(std::vector<Vec>& a, std::vector<Real>& b, Real lambda, Real epsilon,
+void SolveQP(std::vector<Vec>& a, std::vector<Real>& b, Real lambda, Real epsilon_tol,
              Vec& alpha)
 {
     int n = b.size();
@@ -24,12 +24,16 @@ void SolveQP(std::vector<Vec>& a, std::vector<Real>& b, Real lambda, Real epsilo
             H(i,j) = inner_prod(a[i], a[j]);
         }
     }
+    H = H / lambda;
 
 
     Vec b_minus_H_alpha = bVec - prod(H, alpha);
 
     while( *std::max_element(b_minus_H_alpha.begin(), b_minus_H_alpha.end()) -
-           inner_prod(alpha, b_minus_H_alpha) > epsilon)
+           inner_prod(alpha, b_minus_H_alpha)
+           >
+           epsilon_tol*fabs( inner_prod(bVec,alpha) - 0.5*inner_prod(alpha, prod(H, alpha)) )
+         )
     {
         Real maxValue = b_minus_H_alpha(0);
         int maxIdx = 0;

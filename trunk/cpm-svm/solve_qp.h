@@ -4,7 +4,7 @@
 #include "linear_algebra.h"
 
 
-void SolveQP(std::vector<Vec>& a, std::vector<Real>& b, Real lambda, Real epsilon,
+void SolveQP(std::vector<Vec>& a, std::vector<Real>& b, Real lambda, Real epsilon_tol,
              Vec& alpha);
 
 

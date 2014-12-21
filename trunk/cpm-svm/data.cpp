@@ -56,7 +56,7 @@ bool Data::ReadFile(std::string filename)
 
 
     int varCount = 0;
-    for(int k = 0;k<vec.size();k++)
+    for(unsigned k = 0;k<vec.size();k++)
     {
         string line = vec[k];
 
@@ -161,7 +161,7 @@ std::vector<int> Data::TrainSampleIdx() const
 std::vector<int> Data::TestSampleIdx() const
 {
     vector<int> testSampleIdx;
-    for(int i = trainCount;i<sampleIdx.size();i++)
+    for(unsigned i = trainCount;i<sampleIdx.size();i++)
     {
         testSampleIdx.push_back(sampleIdx[i]);
     }
@@ -186,7 +186,7 @@ void Data::Mix()
 }
 
 
-int Data::VarNumber() const
+unsigned Data::VarNumber() const
 {
     return varNumber;
 }
@@ -228,7 +228,7 @@ bool GetStringVector(string filename, vector<string>& vec)
 std::ostream& operator << (std::ostream& stream, const Data& data)
 {
     const SparseMat& samples = data.Samples();
-    for(int i = 0;i<samples.size();i++)
+    for(unsigned i = 0;i<samples.size();i++)
     {
         cout << data.Responses()[i];
         std::list<Pair>::const_iterator iter = samples[i].begin();
