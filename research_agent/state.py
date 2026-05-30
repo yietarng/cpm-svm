@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+import operator
+from typing import Annotated, Any
+
+from typing_extensions import TypedDict
+
+
+class AgentState(TypedDict):
+    user_query: str
+    retrieved_docs: Annotated[list, operator.add]
+    citations: Annotated[list, operator.add]
+    research_result: str
+    stm_notes: Annotated[list, operator.add]
+    ltm_context: Annotated[list, operator.add]
+    current_plan: str
+    intermediate_notes: Annotated[list, operator.add]
+
+
+def default_state() -> AgentState:
+    return AgentState(
+        user_query="",
+        retrieved_docs=[],
+        citations=[],
+        research_result="",
+        stm_notes=[],
+        ltm_context=[],
+        current_plan="",
+        intermediate_notes=[],
+    )

@@ -1,1 +1,32 @@
+# LangGraph core
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=0.1.0
 
+# LangChain ecosystem
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-openai>=0.2.0
+langchain-chroma>=0.1.4
+langchain-anthropic>=0.3.0
+
+# Vector store
+chromadb>=0.5.0
+
+# Web search
+tavily-python>=0.3.0
+
+# Utilities
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+tiktoken>=0.7.0
+typing-extensions>=4.9.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+
+# Optional alternative LTM backends (uncomment to use)
+# faiss-cpu>=1.8.0
+# qdrant-client>=1.9.0
+# psycopg2-binary>=2.9.0
