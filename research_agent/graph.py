@@ -12,10 +12,10 @@ from research_agent.nodes import (
     build_external_search,
     build_retrieve_ltm,
     build_summarize,
-    build_update_stm,
     build_write_ltm,
     retrieve_stm,
     return_to_supervisor,
+    update_stm,
 )
 from research_agent.state import AgentState, default_state
 from research_agent.utils.embeddings import get_embeddings_model
@@ -53,7 +53,7 @@ def build_research_graph(
     graph.add_node("retrieve_ltm", build_retrieve_ltm(ltm_store))
     graph.add_node("external_search", build_external_search(llm, ltm_store))
     graph.add_node("summarize", build_summarize(llm))
-    graph.add_node("update_stm", build_update_stm(config))
+    graph.add_node("update_stm", update_stm)
     graph.add_node("write_ltm", build_write_ltm(ltm_store))
     graph.add_node("return_to_supervisor", return_to_supervisor)
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from typing import Any
 
 from langchain_core.tools import BaseTool

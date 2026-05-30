@@ -21,7 +21,20 @@ def test_default_state_list_fields_empty():
 
 
 def test_additive_reducer():
-    # Simulate LangGraph state merging for additive fields
     a = [1, 2]
     b = [3, 4]
     assert operator.add(a, b) == [1, 2, 3, 4]
+
+
+def test_capped_add_trims_to_max():
+    from research_agent.state import _STM_MAX, _capped_add
+    big = list(range(_STM_MAX))
+    result = _capped_add(big, ["new"])
+    assert len(result) == _STM_MAX
+    assert result[-1] == "new"
+
+
+def test_capped_add_under_limit():
+    from research_agent.state import _capped_add
+    result = _capped_add([1, 2], [3])
+    assert result == [1, 2, 3]

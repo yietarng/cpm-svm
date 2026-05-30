@@ -12,7 +12,6 @@ from research_agent.config import ResearchAgentConfig
 from research_agent.graph import build_research_graph
 from research_agent.prompts import SUPERVISOR_PROMPT
 from research_agent.state import AgentState, default_state
-from research_agent.supervisor.router import route_to_agent
 from research_agent.supervisor.supervisor_state import SupervisorState
 
 

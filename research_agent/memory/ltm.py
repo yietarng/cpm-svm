@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import datetime
 import uuid
+
+_UTC = datetime.timezone.utc
 from typing import Any
 
 from langchain_core.documents import Document
@@ -40,7 +42,7 @@ class LTMStore:
     def store(self, content: str, metadata: dict[str, Any] | None = None) -> str:
         doc_id = str(uuid.uuid4())
         meta = {
-            "stored_at": datetime.datetime.utcnow().isoformat(),
+            "stored_at": datetime.datetime.now(_UTC).isoformat(),
             "source": "research_agent",
             **(metadata or {}),
         }

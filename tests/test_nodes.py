@@ -1,9 +1,9 @@
 import pytest
 
+from research_agent.config import ResearchAgentConfig
 from research_agent.nodes.retrieve_stm import retrieve_stm
 from research_agent.nodes.return_to_supervisor import return_to_supervisor
 from research_agent.nodes.update_stm import update_stm
-from research_agent.config import ResearchAgentConfig
 from research_agent.state import default_state
 
 
@@ -34,21 +34,19 @@ def test_return_to_supervisor_formats_citations():
 
 
 def test_update_stm_appends_note():
-    config = ResearchAgentConfig(stm_max_notes=5)
     state = {
         **default_state(),
         "user_query": "Survey KV cache papers",
         "research_result": "CacheBlend uses selective recomputation.",
         "stm_notes": [],
     }
-    result = update_stm(state, agent_config=config)
+    result = update_stm(state)
     assert "stm_notes" in result
     assert len(result["stm_notes"]) == 1
     assert "Survey KV cache papers" in result["stm_notes"][0]
 
 
 def test_update_stm_no_result_no_op():
-    config = ResearchAgentConfig()
     state = {**default_state(), "research_result": ""}
-    result = update_stm(state, agent_config=config)
+    result = update_stm(state)
     assert result == {}

@@ -12,7 +12,7 @@ from langgraph.types import Send
 from research_agent.config import ResearchAgentConfig
 from research_agent.memory.ltm import LTMStore
 from research_agent.nodes.summarize import build_summarize
-from research_agent.nodes.update_stm import build_update_stm
+from research_agent.nodes.update_stm import update_stm
 from research_agent.nodes.write_ltm import build_write_ltm
 from research_agent.state import AgentState
 from research_agent.team.internal_doc_agent import build_internal_doc_agent_graph
@@ -82,7 +82,7 @@ def build_research_team_graph(
     graph.add_node("internal_doc_agent", int_graph.invoke)
     graph.add_node("merge_results", merge_results)
     graph.add_node("summarize", build_summarize(llm))
-    graph.add_node("update_shared_stm", build_update_stm(config))
+    graph.add_node("update_shared_stm", update_stm)
     graph.add_node("write_shared_ltm", build_write_ltm(ltm_store))
 
     graph.add_edge(START, "plan_research")

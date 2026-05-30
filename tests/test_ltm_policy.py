@@ -1,6 +1,15 @@
 import pytest
 
+import research_agent.utils.ltm_policy as policy_module
 from research_agent.utils.ltm_policy import StorageDecision, should_store_in_ltm
+
+
+@pytest.fixture(autouse=True)
+def clear_seen_hashes():
+    """Isolate the in-process dedup cache between every test."""
+    policy_module._seen_hashes.clear()
+    yield
+    policy_module._seen_hashes.clear()
 
 
 def test_too_short_content_rejected():
@@ -32,16 +41,14 @@ def test_duplicate_rejected():
         "User prefers concise summaries with citations. "
         "This is a stable research interest that should be stored for future sessions."
     )
-    # First call stores it
     should_store_in_ltm(content, source="research_agent")
-    # Second call should see it as duplicate
     ok, decision = should_store_in_ltm(content, source="research_agent")
     assert not ok
     assert decision == StorageDecision.SKIP_DUPLICATE
 
 
 def test_force_store_overrides_no_signal():
-    content = "x " * 50  # Long enough, no storable keyword, but force_store=True
+    content = "x " * 50
     ok, decision = should_store_in_ltm(content, source="research_agent", metadata={"force_store": True})
     assert ok
     assert decision == StorageDecision.STORE
