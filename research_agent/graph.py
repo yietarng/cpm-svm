@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from research_agent.config import ResearchAgentConfig, STMBackend
@@ -20,15 +22,13 @@ from research_agent.utils.embeddings import get_embeddings_model
 
 
 def _build_llm(config: ResearchAgentConfig) -> Any:
-    from langchain_openai import ChatOpenAI
     return ChatOpenAI(model=config.llm_model, temperature=config.llm_temperature)
 
 
 def _build_checkpointer(config: ResearchAgentConfig) -> Any:
     if config.stm_backend == STMBackend.SQLITE:
-        from langgraph.checkpoint.sqlite import SqliteSaver
+        from langgraph.checkpoint.sqlite import SqliteSaver  # optional dep
         return SqliteSaver.from_conn_string(config.sqlite_path)
-    from langgraph.checkpoint.memory import MemorySaver
     return MemorySaver()
 
 

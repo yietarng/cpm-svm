@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import functools
 from typing import Any
 
 from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from research_agent.config import ResearchAgentConfig
@@ -14,13 +17,11 @@ from research_agent.supervisor.supervisor_state import SupervisorState
 
 
 def _build_llm(config: ResearchAgentConfig) -> Any:
-    from langchain_openai import ChatOpenAI
     return ChatOpenAI(model=config.llm_model, temperature=config.llm_temperature)
 
 
 def supervisor_decide(state: SupervisorState, *, llm: Any) -> dict:
     """LLM decides whether to route to research_agent or answer directly."""
-    import functools
     prompt = (
         SUPERVISOR_PROMPT
         + f"\n\nUser request: {state['user_request']}\n\n"
@@ -67,8 +68,6 @@ def build_supervisor_graph(
     llm = _build_llm(config)
     research_graph = build_research_graph(config, checkpointer=checkpointer)
 
-    import functools
-
     graph = StateGraph(SupervisorState)
 
     graph.add_node("supervisor_decide", functools.partial(supervisor_decide, llm=llm))
@@ -89,6 +88,5 @@ def build_supervisor_graph(
     graph.add_edge("direct_answer", "format_result")
     graph.add_edge("format_result", END)
 
-    from langgraph.checkpoint.memory import MemorySaver
     cp = checkpointer or MemorySaver()
     return graph.compile(checkpointer=cp)

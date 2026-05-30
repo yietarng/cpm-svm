@@ -4,6 +4,8 @@ import functools
 from typing import Any
 
 from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
@@ -66,7 +68,6 @@ def build_research_team_graph(
     embeddings = get_embeddings_model(config)
     ltm_store = LTMStore(config, embeddings)
 
-    from langchain_openai import ChatOpenAI
     llm = ChatOpenAI(model=config.llm_model, temperature=config.llm_temperature)
 
     lit_graph = build_literature_agent_graph(config, llm, ltm_store)
@@ -94,6 +95,5 @@ def build_research_team_graph(
     graph.add_edge("update_shared_stm", "write_shared_ltm")
     graph.add_edge("write_shared_ltm", END)
 
-    from langgraph.checkpoint.memory import MemorySaver
     cp = checkpointer or MemorySaver()
     return graph.compile(checkpointer=cp)
